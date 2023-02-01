@@ -9,7 +9,7 @@ import {
   ListBulletIcon,
   PencilSquareIcon,
 } from '@heroicons/react/24/solid'
-import { signIn, signOut, useSession } from 'next-auth/react'
+import { signIn, useSession } from 'next-auth/react'
 
 import Main from '@/components/design/main'
 import Page from '@/components/page'
@@ -29,7 +29,7 @@ const Home: NextPage = () => {
   const textAsList = (text ?? '').split('\n')
 
   const { push } = useRouter()
-  const { data, mutate, isSuccess } = api.notes.save.useMutation()
+  const { data, mutate: saveNote, isSuccess } = api.notes.save.useMutation()
 
   if (isSuccess && data) {
     const { id } = data
@@ -82,8 +82,13 @@ const Home: NextPage = () => {
         {session ? (
           <FooterListItem
             onClick={() => {
-              const [title, body] = text.split('\n')
-              mutate({ text, title, body })
+              const [title, ...body] = text.split('\n')
+              saveNote({
+                text,
+                title,
+                body: body.join('\n'),
+                author: session.user.name ?? '',
+              })
             }}
           >
             <ArrowDownOnSquareIcon className='h-6 w-6' />

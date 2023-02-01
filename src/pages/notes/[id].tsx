@@ -41,7 +41,7 @@ const NotePage: NextPage = () => {
 
   const textAsList = (text ?? '').split('\n')
 
-  const { mutate: update } = api.notes.save.useMutation()
+  const { mutate: updateNote } = api.notes.save.useMutation()
   const { mutate: deleteNote } = api.notes.delete.useMutation()
 
   return (
@@ -101,8 +101,14 @@ const NotePage: NextPage = () => {
         {session ? (
           <FooterListItem
             onClick={() => {
-              const [title, body] = text.split('\n')
-              update({ id: id as string, text, title, body })
+              const [title, ...body] = text.split('\n')
+              updateNote({
+                id: id as string,
+                text,
+                title,
+                body: body.join('\n'),
+                author: session.user.name ?? '',
+              })
             }}
             disabled={text === note?.text}
           >

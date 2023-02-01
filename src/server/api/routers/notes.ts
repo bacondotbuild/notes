@@ -34,6 +34,7 @@ export const notesRouter = createTRPCRouter({
         text: z.string().nullish(),
         title: z.string().nullish(),
         body: z.string().nullish(),
+        author: z.string(),
       })
     )
     .mutation(async ({ ctx, input }) => {
@@ -46,11 +47,13 @@ export const notesRouter = createTRPCRouter({
             text: input.text ?? 'untitled\nbody',
             title: input.title ?? 'untitled',
             body: input.body ?? 'body',
+            author: input.author,
           },
           create: {
             text: input.text ?? 'untitled\nbody',
             title: input.title ?? 'untitled',
             body: input.body ?? 'body',
+            author: input.author,
           },
         })
       } catch (error) {

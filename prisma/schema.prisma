@@ -55,6 +55,9 @@ model User {
     image         String?
     accounts      Account[]
     sessions      Session[]
+    // TODO: Relate to Note
+    // https://www.prisma.io/docs/concepts/components/prisma-schema/relations
+    // notes         Note[]
 }
 
 model VerificationToken {
@@ -66,8 +69,13 @@ model VerificationToken {
 }
 
 model Note {
-    id    String    @id @default(cuid())
-    text  String
-    title String
-    body  String
+    id      String    @id @default(cuid())
+    text    String
+    title   String
+    body    String
+    author  String
+    // TODO: Relate to Note
+    // https://www.prisma.io/docs/concepts/components/prisma-schema/relations
+    // author    User @relation(fields: [authorId], references: [id])
+    // authorId  String // relation scalar field  (used in the `@relation` attribute above)
 }

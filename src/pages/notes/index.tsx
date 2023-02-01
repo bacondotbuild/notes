@@ -49,7 +49,7 @@ const NotePage: NextPage = () => {
             {notes.map(note => (
               <li key={note.id}>
                 <Link className='text-cb-pink' href={`notes/${note.id}`}>
-                  {note.title}
+                  {note.title} - {note.author}
                 </Link>
               </li>
             ))}
