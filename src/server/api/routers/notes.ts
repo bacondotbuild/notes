@@ -27,8 +27,7 @@ export const notesRouter = createTRPCRouter({
       console.log(error)
     }
   }),
-  // save: protectedProcedure // TODO
-  save: publicProcedure
+  save: protectedProcedure
     .input(
       z.object({
         id: z.string().nullish(),
@@ -58,8 +57,7 @@ export const notesRouter = createTRPCRouter({
         console.log(error)
       }
     }),
-  // save: protectedProcedure // TODO
-  delete: publicProcedure
+  delete: protectedProcedure
     .input(
       z
         .object({

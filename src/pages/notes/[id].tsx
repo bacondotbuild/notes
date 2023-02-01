@@ -3,12 +3,14 @@ import { useRouter } from 'next/router'
 import Link from 'next/link'
 import {
   ArrowDownOnSquareIcon,
+  ArrowRightOnRectangleIcon,
   Bars2Icon,
   DocumentDuplicateIcon,
   ListBulletIcon,
   PencilSquareIcon,
   TrashIcon,
 } from '@heroicons/react/24/solid'
+import { signIn, useSession } from 'next-auth/react'
 
 import Main from '@/components/design/main'
 import Page from '@/components/page'
@@ -22,6 +24,7 @@ import { useEffect, useState } from 'react'
 type Mode = 'text' | 'list'
 
 const NotePage: NextPage = () => {
+  const { data: session } = useSession()
   const {
     query: { id },
     push,
@@ -82,26 +85,38 @@ const NotePage: NextPage = () => {
             <PencilSquareIcon className='h-6 w-6' />
           </FooterListItem>
         )}
-        <FooterListItem
-          onClick={() => {
-            deleteNote({ id: id as string })
-            push('/notes').catch(err => console.log(err))
-          }}
-        >
-          <TrashIcon className='h-6 w-6 text-red-600' />
-        </FooterListItem>
+        {session && (
+          <FooterListItem
+            onClick={() => {
+              deleteNote({ id: id as string })
+              push('/notes').catch(err => console.log(err))
+            }}
+          >
+            <TrashIcon className='h-6 w-6 text-red-600' />
+          </FooterListItem>
+        )}
         <FooterListItem onClick={() => copyToClipboard(text)}>
           <DocumentDuplicateIcon className='h-6 w-6' />
         </FooterListItem>
-        <FooterListItem
-          onClick={() => {
-            const [title, body] = text.split('\n')
-            update({ id: id as string, text, title, body })
-          }}
-          disabled={text === note?.text}
-        >
-          <ArrowDownOnSquareIcon className='h-6 w-6' />
-        </FooterListItem>
+        {session ? (
+          <FooterListItem
+            onClick={() => {
+              const [title, body] = text.split('\n')
+              update({ id: id as string, text, title, body })
+            }}
+            disabled={text === note?.text}
+          >
+            <ArrowDownOnSquareIcon className='h-6 w-6' />
+          </FooterListItem>
+        ) : (
+          <FooterListItem
+            onClick={() => {
+              signIn('discord').catch(err => console.log(err))
+            }}
+          >
+            <ArrowRightOnRectangleIcon className='h-6 w-6' />
+          </FooterListItem>
+        )}
       </Footer>
     </Page>
   )

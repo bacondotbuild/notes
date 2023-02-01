@@ -3,11 +3,13 @@ import Link from 'next/link'
 import { useRouter } from 'next/router'
 import {
   ArrowDownOnSquareIcon,
+  ArrowRightOnRectangleIcon,
   Bars2Icon,
   DocumentDuplicateIcon,
   ListBulletIcon,
   PencilSquareIcon,
 } from '@heroicons/react/24/solid'
+import { signIn, signOut, useSession } from 'next-auth/react'
 
 import Main from '@/components/design/main'
 import Page from '@/components/page'
@@ -20,6 +22,7 @@ import { api } from '@/lib/api'
 type Mode = 'text' | 'list'
 
 const Home: NextPage = () => {
+  const { data: session } = useSession()
   const [text, setText] = useLocalStorage('home-note-text', '')
   const [mode, setMode] = useLocalStorage<Mode>('home-note-mode', 'text')
 
@@ -76,14 +79,24 @@ const Home: NextPage = () => {
         <FooterListItem onClick={() => copyToClipboard(text)}>
           <DocumentDuplicateIcon className='h-6 w-6' />
         </FooterListItem>
-        <FooterListItem
-          onClick={() => {
-            const [title, body] = text.split('\n')
-            mutate({ text, title, body })
-          }}
-        >
-          <ArrowDownOnSquareIcon className='h-6 w-6' />
-        </FooterListItem>
+        {session ? (
+          <FooterListItem
+            onClick={() => {
+              const [title, body] = text.split('\n')
+              mutate({ text, title, body })
+            }}
+          >
+            <ArrowDownOnSquareIcon className='h-6 w-6' />
+          </FooterListItem>
+        ) : (
+          <FooterListItem
+            onClick={() => {
+              signIn('discord').catch(err => console.log(err))
+            }}
+          >
+            <ArrowRightOnRectangleIcon className='h-6 w-6' />
+          </FooterListItem>
+        )}
       </Footer>
     </Page>
   )
