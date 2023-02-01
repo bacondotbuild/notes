@@ -1,0 +1,8 @@
+{
+  "name": "notes",
+  "short_name": "notes",
+  "lang": "en-US",
+  "start_url": "/",
+  "display": "standalone",
+  "scope": "/"
+}
