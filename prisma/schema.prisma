@@ -63,11 +63,12 @@ model VerificationToken {
 }
 
 model Note {
-    id      String    @id @default(cuid())
-    text    String
-    title   String
-    body    String
-    author  String
+    id        String    @id @default(cuid())
+    text      String
+    title     String
+    body      String
+    markdown  String?
+    author    String
     // TODO: Relate to Note
     // https://www.prisma.io/docs/concepts/components/prisma-schema/relations
     // author    User @relation(fields: [authorId], references: [id])

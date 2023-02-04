@@ -1,6 +1,12 @@
 import { z } from 'zod'
+import { marked } from 'marked'
+import { JSDOM } from 'jsdom'
+import DOMPurify from 'dompurify'
 
 import { createTRPCRouter, publicProcedure, protectedProcedure } from '../trpc'
+
+const window = new JSDOM('').window
+const purify = DOMPurify(window as unknown as Window)
 
 export const notesRouter = createTRPCRouter({
   get: publicProcedure
@@ -38,23 +44,27 @@ export const notesRouter = createTRPCRouter({
       })
     )
     .mutation(async ({ ctx, input }) => {
+      const text = input.text ?? 'untitled\nbody'
+      const title = input.title ?? 'untitled'
+
+      const isMarkdown = title.startsWith('# ')
+      const markdown = isMarkdown ? purify.sanitize(marked.parse(text)) : ''
+
+      const newNote = {
+        text,
+        title,
+        body: input.body ?? 'body',
+        markdown,
+        author: input.author,
+      }
+
       try {
         return await ctx.prisma.note.upsert({
           where: {
             id: input.id ?? '',
           },
-          update: {
-            text: input.text ?? 'untitled\nbody',
-            title: input.title ?? 'untitled',
-            body: input.body ?? 'body',
-            author: input.author,
-          },
-          create: {
-            text: input.text ?? 'untitled\nbody',
-            title: input.title ?? 'untitled',
-            body: input.body ?? 'body',
-            author: input.author,
-          },
+          update: newNote,
+          create: newNote,
         })
       } catch (error) {
         console.log(error)
