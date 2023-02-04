@@ -1,6 +1,9 @@
+import { useEffect, useState } from 'react'
 import { type NextPage } from 'next'
 import { useRouter } from 'next/router'
 import Link from 'next/link'
+import type { Note } from '@prisma/client'
+import { signIn, useSession } from 'next-auth/react'
 import {
   ArrowDownOnSquareIcon,
   ArrowRightOnRectangleIcon,
@@ -10,7 +13,6 @@ import {
   PencilSquareIcon,
   TrashIcon,
 } from '@heroicons/react/24/solid'
-import { signIn, useSession } from 'next-auth/react'
 
 import Main from '@/components/design/main'
 import Page from '@/components/page'
@@ -19,7 +21,6 @@ import Footer, { FooterListItem } from '@/components/design/footer'
 import useLocalStorage from '@/lib/useLocalStorage'
 import copyToClipboard from '@/lib/copyToClipboard'
 import { api } from '@/lib/api'
-import { useEffect, useState } from 'react'
 
 type Mode = 'text' | 'list'
 
@@ -41,7 +42,31 @@ const NotePage: NextPage = () => {
 
   const textAsList = (text ?? '').split('\n')
 
-  const { mutate: updateNote } = api.notes.save.useMutation()
+  const utils = api.useContext()
+  const { mutate: updateNote } = api.notes.save.useMutation({
+    // https://create.t3.gg/en/usage/trpc#optimistic-updates
+    async onMutate(newNote) {
+      // Cancel outgoing fetches (so they don't overwrite our optimistic update)
+      await utils.notes.get.cancel()
+
+      // Get the data from the queryCache
+      const prevData = utils.notes.get.getData()
+
+      // Optimistically update the data with our new post
+      utils.notes.get.setData({ id: id as string }, () => newNote as Note)
+
+      // Return the previous data so we can revert if something goes wrong
+      return { prevData }
+    },
+    onError(err, newNote, ctx) {
+      // If the mutation fails, use the context-value from onMutate
+      utils.notes.get.setData({ id: id as string }, ctx?.prevData)
+    },
+    async onSettled() {
+      // Sync with server once mutation has settled
+      await utils.notes.get.invalidate()
+    },
+  })
   const { mutate: deleteNote } = api.notes.delete.useMutation()
 
   return (
