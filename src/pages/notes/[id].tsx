@@ -47,13 +47,7 @@ const NotePage: NextPage = () => {
   return (
     <Page>
       <Main className='flex flex-col p-4'>
-        {mode === 'text' ? (
-          <textarea
-            className='h-full w-full flex-grow bg-cobalt'
-            value={text}
-            onChange={e => setText(e.target.value)}
-          />
-        ) : (
+        {mode === 'list' ? (
           <div className='space-y-3'>
             <DragDropList
               items={textAsList.map(item => ({ id: item, item }))}
@@ -68,6 +62,12 @@ const NotePage: NextPage = () => {
               listContainerClassName='space-y-3'
             />
           </div>
+        ) : (
+          <textarea
+            className='h-full w-full flex-grow bg-cobalt'
+            value={text}
+            onChange={e => setText(e.target.value)}
+          />
         )}
       </Main>
       <Footer>
