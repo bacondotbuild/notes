@@ -101,14 +101,15 @@ const NotePage: NextPage = () => {
         {session ? (
           <FooterListItem
             onClick={() => {
-              const [title, ...body] = text.split('\n')
-              updateNote({
+              const [title, ...body] = text.split('\n\n')
+              const newNote = {
                 id: id as string,
                 text,
                 title,
-                body: body.join('\n'),
+                body: body.join('\n\n'),
                 author: session.user.name ?? '',
-              })
+              }
+              updateNote(newNote)
             }}
             disabled={text === note?.text}
           >

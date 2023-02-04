@@ -82,13 +82,14 @@ const Home: NextPage = () => {
         {session ? (
           <FooterListItem
             onClick={() => {
-              const [title, ...body] = text.split('\n')
-              saveNote({
+              const [title, ...body] = text.split('\n\n')
+              const note = {
                 text,
                 title,
-                body: body.join('\n'),
+                body: body.join('\n\n'),
                 author: session.user.name ?? '',
-              })
+              }
+              saveNote(note)
             }}
           >
             <ArrowDownOnSquareIcon className='h-6 w-6' />
