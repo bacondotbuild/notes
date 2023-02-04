@@ -75,7 +75,9 @@ const NotePage: NextPage = () => {
         {mode === 'list' ? (
           <div className='space-y-3'>
             <DragDropList
-              items={textAsList.map(item => ({ id: item, item }))}
+              items={textAsList
+                .filter(item => item)
+                .map(item => ({ id: item, item }))}
               renderItem={({ item }: { item: string }, index: number) => (
                 <div key={index} className='rounded-lg bg-cobalt p-3'>
                   {index + 1}. {item}
