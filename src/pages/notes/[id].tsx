@@ -69,6 +69,7 @@ const NotePage: NextPage = () => {
   })
   const { mutate: deleteNote } = api.notes.delete.useMutation()
 
+  console.log({ title: note?.title })
   return (
     <Page>
       <Main className='flex flex-col p-4'>
@@ -76,7 +77,8 @@ const NotePage: NextPage = () => {
           <div className='space-y-3'>
             <DragDropList
               items={textAsList
-                .filter(item => item)
+                // TODO: Add back after figuring out how to address bug where title can be multiple lines
+                // .filter(item => item)
                 .map(item => ({ id: item, item }))}
               renderItem={({ item }: { item: string }, index: number) => (
                 <div key={index} className='rounded-lg bg-cobalt p-3'>
