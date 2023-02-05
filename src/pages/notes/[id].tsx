@@ -69,7 +69,6 @@ const NotePage: NextPage = () => {
   })
   const { mutate: deleteNote } = api.notes.delete.useMutation()
 
-  console.log({ title: note?.title })
   return (
     <Page>
       <Main className='flex flex-col p-4'>
