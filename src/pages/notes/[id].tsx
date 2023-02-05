@@ -21,10 +21,13 @@ import Footer, { FooterListItem } from '@/components/design/footer'
 import useLocalStorage from '@/lib/useLocalStorage'
 import copyToClipboard from '@/lib/copyToClipboard'
 import { api } from '@/lib/api'
+import Modal from '@/components/modal'
+import Button from '@/components/design/button'
 
 type Mode = 'text' | 'list'
 
 const NotePage: NextPage = () => {
+  const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false)
   const { data: session } = useSession()
   const {
     query: { id },
@@ -114,12 +117,7 @@ const NotePage: NextPage = () => {
           </FooterListItem>
         )}
         {session && (
-          <FooterListItem
-            onClick={() => {
-              deleteNote({ id: id as string })
-              push('/notes').catch(err => console.log(err))
-            }}
-          >
+          <FooterListItem onClick={() => setIsConfirmModalOpen(true)}>
             <TrashIcon className='h-6 w-6 text-red-600' />
           </FooterListItem>
         )}
@@ -153,6 +151,29 @@ const NotePage: NextPage = () => {
           </FooterListItem>
         )}
       </Footer>
+      <Modal
+        isOpen={isConfirmModalOpen}
+        setIsOpen={setIsConfirmModalOpen}
+        title='are you sure you want to delete?'
+      >
+        <div className='flex space-x-4'>
+          <Button
+            onClick={() => {
+              deleteNote({ id: id as string })
+              push('/notes').catch(err => console.log(err))
+            }}
+          >
+            yes
+          </Button>
+          <Button
+            onClick={() => {
+              setIsConfirmModalOpen(false)
+            }}
+          >
+            no
+          </Button>
+        </div>
+      </Modal>
     </Page>
   )
 }
