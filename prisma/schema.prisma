@@ -68,6 +68,7 @@ model Note {
     title     String
     body      String
     markdown  String?
+    list      String[]
     author    String
     // TODO: Relate to User
     // https://www.prisma.io/docs/concepts/components/prisma-schema/relations

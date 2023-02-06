@@ -17,7 +17,7 @@ export const notesRouter = createTRPCRouter({
     )
     .query(async ({ ctx, input }) => {
       try {
-        return await ctx.prisma.note.findFirst({
+        return await ctx.prisma.note.findFirstOrThrow({
           where: {
             id: input.id,
           },
@@ -46,15 +46,20 @@ export const notesRouter = createTRPCRouter({
     .mutation(async ({ ctx, input }) => {
       const text = input.text ?? 'untitled\nbody'
       const title = input.title ?? 'untitled'
+      const body = input.body ?? 'body'
 
       const isMarkdown = title.startsWith('# ')
       const markdown = isMarkdown ? purify.sanitize(marked.parse(text)) : ''
 
+      const isList = title.startsWith('= ')
+      const list = isList ? body.split('\n').filter(item => item !== '') : []
+
       const newNote = {
         text,
         title,
-        body: input.body ?? 'body',
+        body,
         markdown,
+        list,
         author: input.author,
       }
 

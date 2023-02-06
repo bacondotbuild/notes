@@ -39,13 +39,13 @@ const NotePage: NextPage = () => {
             <ArrowRightOnRectangleIcon className='h-6 w-6' />
           </Button>
         )}
-        <Link className='text-cb-pink' href='/'>
+        <Link className='text-cb-yellow' href='/'>
           new note
         </Link>
         {isLoading ? (
           <LoadingIcon className='h-16 w-16 animate-spin-slow text-blue-700 dark:text-blue-200' />
         ) : notes?.length && notes?.length > 0 ? (
-          <ul className='space-y-4 '>
+          <ul className='space-y-4'>
             {notes.map(note => (
               <li key={note.id}>
                 <Link className='text-cb-pink' href={`notes/${note.id}`}>
