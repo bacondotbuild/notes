@@ -12,6 +12,7 @@ import {
   PencilSquareIcon,
   TrashIcon,
 } from '@heroicons/react/24/solid'
+import { toast } from 'react-toastify'
 
 import Main from '@/components/design/main'
 import Page from '@/components/page'
@@ -136,7 +137,12 @@ const NotePage: NextPage = () => {
             <TrashIcon className='h-6 w-6 text-red-600' />
           </FooterListItem>
         )}
-        <FooterListItem onClick={() => copyToClipboard(text)}>
+        <FooterListItem
+          onClick={() => {
+            copyToClipboard(text)
+            toast.success('copied to clipboard')
+          }}
+        >
           <DocumentDuplicateIcon className='h-6 w-6' />
         </FooterListItem>
         {!readOnly && (

@@ -10,6 +10,7 @@ import {
   PencilSquareIcon,
 } from '@heroicons/react/24/solid'
 import { signIn, useSession } from 'next-auth/react'
+import { toast } from 'react-toastify'
 
 import Main from '@/components/design/main'
 import Page from '@/components/page'
@@ -79,7 +80,12 @@ const Home: NextPage = () => {
             <PencilSquareIcon className='h-6 w-6' />
           </FooterListItem>
         )}
-        <FooterListItem onClick={() => copyToClipboard(text)}>
+        <FooterListItem
+          onClick={() => {
+            copyToClipboard(text)
+            toast.success('copied to clipboard')
+          }}
+        >
           <DocumentDuplicateIcon className='h-6 w-6' />
         </FooterListItem>
         {session ? (
