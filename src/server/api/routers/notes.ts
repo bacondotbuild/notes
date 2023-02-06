@@ -44,6 +44,21 @@ export const notesRouter = createTRPCRouter({
       })
     )
     .mutation(async ({ ctx, input }) => {
+      const currentUser = ctx.session.user.name
+
+      const noteToBeUpdated = await ctx.prisma.note.findFirst({
+        where: {
+          id: input.id ?? '',
+        },
+        select: {
+          author: true,
+        },
+      })
+
+      if (input.id && noteToBeUpdated?.author !== currentUser) {
+        return null
+      }
+
       const text = input.text ?? 'untitled\nbody'
       const title = input.title ?? 'untitled'
       const body = input.body ?? 'body'

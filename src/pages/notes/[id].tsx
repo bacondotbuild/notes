@@ -72,32 +72,48 @@ const NotePage: NextPage = () => {
   })
   const { mutate: deleteNote } = api.notes.delete.useMutation()
 
+  const readOnly = !session || session?.user?.name !== note?.author
   return (
     <Page>
       <Main className='flex flex-col p-4'>
         {mode === 'list' ? (
           <div className='space-y-3'>
-            <DragDropList
-              items={textAsList
-                // TODO: Add back after figuring out how to address bug where title can be multiple lines
-                // .filter(item => item)
-                .map(item => ({ id: item, item }))}
-              renderItem={({ item }: { item: string }, index: number) => (
-                <div key={index} className='rounded-lg bg-cobalt p-3'>
-                  {index + 1}. {item}
-                </div>
-              )}
-              setItems={newItems => {
-                setText(newItems.map(({ item }) => item).join('\n'))
-              }}
-              listContainerClassName='space-y-3'
-            />
+            {readOnly ? ( // TODO: Refactor repeated code
+              <ul className='space-y-3'>
+                {textAsList
+                  // TODO: Add back after figuring out how to address bug where title can be multiple lines
+                  // .filter(item => item)
+                  .map(item => ({ id: item, item }))
+                  .map(({ item }: { item: string }, index: number) => (
+                    <div key={index} className='rounded-lg bg-cobalt p-3'>
+                      {index + 1}. {item}
+                    </div>
+                  ))}
+              </ul>
+            ) : (
+              <DragDropList
+                items={textAsList
+                  // TODO: Add back after figuring out how to address bug where title can be multiple lines
+                  // .filter(item => item)
+                  .map(item => ({ id: item, item }))}
+                renderItem={({ item }: { item: string }, index: number) => (
+                  <div key={index} className='rounded-lg bg-cobalt p-3'>
+                    {index + 1}. {item}
+                  </div>
+                )}
+                setItems={newItems => {
+                  setText(newItems.map(({ item }) => item).join('\n'))
+                }}
+                listContainerClassName='space-y-3'
+              />
+            )}
           </div>
         ) : (
           <textarea
             className='h-full w-full flex-grow bg-cobalt'
             value={text}
             onChange={e => setText(e.target.value)}
+            readOnly={readOnly}
           />
         )}
       </Main>
@@ -116,7 +132,7 @@ const NotePage: NextPage = () => {
             <PencilSquareIcon className='h-6 w-6' />
           </FooterListItem>
         )}
-        {session && (
+        {!readOnly && (
           <FooterListItem onClick={() => setIsConfirmModalOpen(true)}>
             <TrashIcon className='h-6 w-6 text-red-600' />
           </FooterListItem>
@@ -124,7 +140,7 @@ const NotePage: NextPage = () => {
         <FooterListItem onClick={() => copyToClipboard(text)}>
           <DocumentDuplicateIcon className='h-6 w-6' />
         </FooterListItem>
-        {session ? (
+        {!readOnly && (
           <FooterListItem
             onClick={() => {
               const [title, ...body] = text.split('\n\n')
@@ -141,18 +157,10 @@ const NotePage: NextPage = () => {
           >
             <ArrowDownOnSquareIcon className='h-6 w-6' />
           </FooterListItem>
-        ) : (
-          <FooterListItem
-            onClick={() => {
-              signIn('discord').catch(err => console.log(err))
-            }}
-          >
-            <ArrowRightOnRectangleIcon className='h-6 w-6' />
-          </FooterListItem>
         )}
       </Footer>
       <Modal
-        isOpen={isConfirmModalOpen}
+        isOpen={isConfirmModalOpen && !readOnly}
         setIsOpen={setIsConfirmModalOpen}
         title='are you sure you want to delete?'
       >
