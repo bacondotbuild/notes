@@ -92,13 +92,26 @@ export const notesRouter = createTRPCRouter({
     }),
   delete: protectedProcedure
     .input(
-      z
-        .object({
-          id: z.string().nullish(),
-        })
-        .nullish()
+      z.object({
+        id: z.string(),
+      })
     )
     .mutation(async ({ ctx, input }) => {
+      const currentUser = ctx.session.user.name
+
+      const noteToBeDeleted = await ctx.prisma.note.findFirst({
+        where: {
+          id: input.id ?? '',
+        },
+        select: {
+          author: true,
+        },
+      })
+
+      if (input.id && noteToBeDeleted?.author !== currentUser) {
+        return null
+      }
+
       try {
         return await ctx.prisma.note.delete({
           where: {
