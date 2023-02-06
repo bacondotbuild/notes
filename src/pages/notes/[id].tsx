@@ -3,10 +3,9 @@ import { type NextPage } from 'next'
 import { useRouter } from 'next/router'
 import Link from 'next/link'
 import type { Note } from '@prisma/client'
-import { signIn, useSession } from 'next-auth/react'
+import { useSession } from 'next-auth/react'
 import {
   ArrowDownOnSquareIcon,
-  ArrowRightOnRectangleIcon,
   Bars2Icon,
   DocumentDuplicateIcon,
   ListBulletIcon,
