@@ -4,6 +4,8 @@ import { useRouter } from 'next/router'
 import {
   ArrowDownOnSquareIcon,
   ArrowRightOnRectangleIcon,
+  ArrowsPointingInIcon,
+  ArrowsPointingOutIcon,
   Bars2Icon,
   DocumentDuplicateIcon,
   ListBulletIcon,
@@ -19,6 +21,7 @@ import Footer, { FooterListItem } from '@/components/design/footer'
 import useLocalStorage from '@/lib/useLocalStorage'
 import copyToClipboard from '@/lib/copyToClipboard'
 import { api } from '@/lib/api'
+import classNames from 'classnames'
 
 type Mode = 'text' | 'list'
 
@@ -26,6 +29,10 @@ const Home: NextPage = () => {
   const { data: session } = useSession()
   const [text, setText] = useLocalStorage('home-note-text', '')
   const [mode, setMode] = useLocalStorage<Mode>('home-note-mode', 'text')
+  const [isFullScreen, setIsFullScreen] = useLocalStorage<boolean>(
+    'home-note-fullscreen',
+    false
+  )
 
   const textAsList = (text ?? '').split('\n')
 
@@ -38,7 +45,23 @@ const Home: NextPage = () => {
   }
   return (
     <Page>
-      <Main className='flex flex-col p-4'>
+      <div className='absolute top-2 right-2'>
+        <button
+          className='text-cb-yellow'
+          type='button'
+          onClick={() => {
+            console.log({ isFullScreen })
+            setIsFullScreen(!isFullScreen)
+          }}
+        >
+          {isFullScreen ? (
+            <ArrowsPointingInIcon className='h-6 w-6' />
+          ) : (
+            <ArrowsPointingOutIcon className='h-6 w-6' />
+          )}
+        </button>
+      </div>
+      <Main className={classNames('flex flex-col', !isFullScreen && 'p-4')}>
         {mode === 'list' ? (
           <div className='space-y-3'>
             <DragDropList
@@ -65,54 +88,56 @@ const Home: NextPage = () => {
           />
         )}
       </Main>
-      <Footer>
-        <FooterListItem>
-          <Link className='flex w-full justify-center py-2' href='/notes'>
-            <Bars2Icon className='h-6 w-6' />
-          </Link>
-        </FooterListItem>
-        {mode === 'text' ? (
-          <FooterListItem onClick={() => setMode('list')}>
-            <ListBulletIcon className='h-6 w-6' />
+      {!isFullScreen && (
+        <Footer>
+          <FooterListItem>
+            <Link className='flex w-full justify-center py-2' href='/notes'>
+              <Bars2Icon className='h-6 w-6' />
+            </Link>
           </FooterListItem>
-        ) : (
-          <FooterListItem onClick={() => setMode('text')}>
-            <PencilSquareIcon className='h-6 w-6' />
-          </FooterListItem>
-        )}
-        <FooterListItem
-          onClick={() => {
-            copyToClipboard(text)
-            toast.success('copied to clipboard')
-          }}
-        >
-          <DocumentDuplicateIcon className='h-6 w-6' />
-        </FooterListItem>
-        {session ? (
+          {mode === 'text' ? (
+            <FooterListItem onClick={() => setMode('list')}>
+              <ListBulletIcon className='h-6 w-6' />
+            </FooterListItem>
+          ) : (
+            <FooterListItem onClick={() => setMode('text')}>
+              <PencilSquareIcon className='h-6 w-6' />
+            </FooterListItem>
+          )}
           <FooterListItem
             onClick={() => {
-              const [title, ...body] = text.split('\n\n')
-              const note = {
-                text,
-                title,
-                body: body.join('\n\n'),
-                author: session.user.name ?? '',
-              }
-              saveNote(note)
+              copyToClipboard(text)
+              toast.success('copied to clipboard')
             }}
           >
-            <ArrowDownOnSquareIcon className='h-6 w-6' />
+            <DocumentDuplicateIcon className='h-6 w-6' />
           </FooterListItem>
-        ) : (
-          <FooterListItem
-            onClick={() => {
-              signIn('discord').catch(err => console.log(err))
-            }}
-          >
-            <ArrowRightOnRectangleIcon className='h-6 w-6' />
-          </FooterListItem>
-        )}
-      </Footer>
+          {session ? (
+            <FooterListItem
+              onClick={() => {
+                const [title, ...body] = text.split('\n\n')
+                const note = {
+                  text,
+                  title,
+                  body: body.join('\n\n'),
+                  author: session.user.name ?? '',
+                }
+                saveNote(note)
+              }}
+            >
+              <ArrowDownOnSquareIcon className='h-6 w-6' />
+            </FooterListItem>
+          ) : (
+            <FooterListItem
+              onClick={() => {
+                signIn('discord').catch(err => console.log(err))
+              }}
+            >
+              <ArrowRightOnRectangleIcon className='h-6 w-6' />
+            </FooterListItem>
+          )}
+        </Footer>
+      )}
     </Page>
   )
 }
