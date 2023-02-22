@@ -123,6 +123,7 @@ const Home: NextPage = () => {
                   author: session.user.name ?? '',
                 }
                 saveNote(note)
+                setText('')
               }}
             >
               <ArrowDownOnSquareIcon className='h-6 w-6' />
