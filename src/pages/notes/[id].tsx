@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { type NextPage } from 'next'
 import { useRouter } from 'next/router'
 import Link from 'next/link'
@@ -27,6 +27,7 @@ import Button from '@/components/design/button'
 type Mode = 'text' | 'list'
 
 const NotePage: NextPage = () => {
+  const textAreaRef = useRef<HTMLTextAreaElement>(null)
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false)
   const { data: session } = useSession()
   const {
@@ -110,9 +111,36 @@ const NotePage: NextPage = () => {
           </div>
         ) : (
           <textarea
+            ref={textAreaRef}
             className='h-full w-full flex-grow bg-cobalt'
             value={text}
-            onChange={e => setText(e.target.value)}
+            onChange={e => {
+              setText(e.target.value)
+            }}
+            onKeyDown={e => {
+              if (e.key == 'Tab') {
+                e.preventDefault()
+                const { selectionStart, selectionEnd } =
+                  e.target as HTMLInputElement
+
+                const newText =
+                  text.substring(0, selectionStart ?? undefined) +
+                  '\t' +
+                  text.substring(selectionEnd ?? 0, text.length)
+
+                if (textAreaRef.current && typeof selectionStart === 'number') {
+                  textAreaRef.current.focus()
+                  textAreaRef.current.value = newText
+
+                  textAreaRef.current.setSelectionRange(
+                    selectionStart + 1,
+                    selectionStart + 1
+                  )
+                }
+
+                setText(newText)
+              }
+            }}
             readOnly={readOnly}
           />
         )}
