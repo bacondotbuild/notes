@@ -6,11 +6,16 @@ import type { Note } from '@prisma/client'
 import { useSession } from 'next-auth/react'
 import {
   ArrowDownOnSquareIcon,
+  ArrowSmallRightIcon,
   Bars2Icon,
   DocumentDuplicateIcon,
+  LinkIcon,
   ListBulletIcon,
   PencilSquareIcon,
+  ShareIcon,
   TrashIcon,
+  WrenchIcon,
+  XMarkIcon,
 } from '@heroicons/react/24/solid'
 import { toast } from 'react-toastify'
 
@@ -26,7 +31,17 @@ import Button from '@/components/design/button'
 
 type Mode = 'text' | 'list'
 
+type FooterType = 'default' | 'tools' | 'share'
+
 const NotePage: NextPage = () => {
+  const currentUrl =
+    typeof window !== 'undefined' ? window?.location.href : null
+  const [currentSelectionStart, setCurrentSelectionStart] = useState<
+    number | null
+  >(null)
+  const [currentSelectionEnd, setCurrentSelectionEnd] = useState<number | null>(
+    null
+  )
   const textAreaRef = useRef<HTMLTextAreaElement>(null)
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false)
   const { data: session } = useSession()
@@ -43,6 +58,7 @@ const NotePage: NextPage = () => {
     setText(note?.text as string)
   }, [note])
   const [mode, setMode] = useLocalStorage<Mode>('home-note-mode', 'text')
+  const [footerType, setFooterType] = useState<FooterType>('default')
 
   const textAsList = (text ?? '').split('\n')
 
@@ -141,55 +157,128 @@ const NotePage: NextPage = () => {
                 setText(newText)
               }
             }}
+            onKeyUp={e => {
+              const { selectionStart, selectionEnd } =
+                e.target as HTMLInputElement
+              setCurrentSelectionStart(selectionStart)
+              setCurrentSelectionEnd(selectionEnd)
+            }}
+            onFocus={e => {
+              const { selectionStart, selectionEnd } = e.target
+              setCurrentSelectionStart(selectionStart)
+              setCurrentSelectionEnd(selectionEnd)
+            }}
+            onClick={e => {
+              const { selectionStart, selectionEnd } =
+                e.target as HTMLInputElement
+              setCurrentSelectionStart(selectionStart)
+              setCurrentSelectionEnd(selectionEnd)
+            }}
             readOnly={readOnly}
           />
         )}
       </Main>
       <Footer>
-        <FooterListItem>
-          <Link className='flex w-full justify-center py-2' href='/notes'>
-            <Bars2Icon className='h-6 w-6' />
-          </Link>
-        </FooterListItem>
-        {mode === 'text' ? (
-          <FooterListItem onClick={() => setMode('list')}>
-            <ListBulletIcon className='h-6 w-6' />
-          </FooterListItem>
+        {footerType === 'tools' ? (
+          <>
+            <FooterListItem onClick={() => setFooterType('default')}>
+              <XMarkIcon className='h-6 w-6' />
+            </FooterListItem>
+            {mode === 'text' ? (
+              <FooterListItem onClick={() => setMode('list')}>
+                <ListBulletIcon className='h-6 w-6' />
+              </FooterListItem>
+            ) : (
+              <FooterListItem onClick={() => setMode('text')}>
+                <PencilSquareIcon className='h-6 w-6' />
+              </FooterListItem>
+            )}
+            <FooterListItem
+              onClick={() => {
+                // add tab
+                const newText =
+                  text.substring(0, currentSelectionStart ?? undefined) +
+                  '\t' +
+                  text.substring(currentSelectionEnd ?? 0, text.length)
+
+                if (
+                  textAreaRef.current &&
+                  typeof currentSelectionStart === 'number'
+                ) {
+                  textAreaRef.current.focus()
+                  textAreaRef.current.value = newText
+
+                  textAreaRef.current.setSelectionRange(
+                    currentSelectionStart + 1,
+                    currentSelectionStart + 1
+                  )
+                }
+
+                setText(newText)
+              }}
+            >
+              <ArrowSmallRightIcon className='h-6 w-6' />
+            </FooterListItem>
+            {!readOnly && (
+              <FooterListItem onClick={() => setIsConfirmModalOpen(true)}>
+                <TrashIcon className='h-6 w-6 text-red-600' />
+              </FooterListItem>
+            )}
+          </>
+        ) : footerType === 'share' ? (
+          <>
+            <FooterListItem onClick={() => setFooterType('default')}>
+              <XMarkIcon className='h-6 w-6' />
+            </FooterListItem>
+            <FooterListItem
+              onClick={() => {
+                copyToClipboard(text)
+                toast.success('copied text to clipboard')
+              }}
+            >
+              <DocumentDuplicateIcon className='h-6 w-6' />
+            </FooterListItem>
+            <FooterListItem
+              onClick={() => {
+                copyToClipboard(currentUrl || '')
+                toast.success('copied url to clipboard')
+              }}
+            >
+              <LinkIcon className='h-6 w-6' />
+            </FooterListItem>
+          </>
         ) : (
-          <FooterListItem onClick={() => setMode('text')}>
-            <PencilSquareIcon className='h-6 w-6' />
-          </FooterListItem>
-        )}
-        {!readOnly && (
-          <FooterListItem onClick={() => setIsConfirmModalOpen(true)}>
-            <TrashIcon className='h-6 w-6 text-red-600' />
-          </FooterListItem>
-        )}
-        <FooterListItem
-          onClick={() => {
-            copyToClipboard(text)
-            toast.success('copied to clipboard')
-          }}
-        >
-          <DocumentDuplicateIcon className='h-6 w-6' />
-        </FooterListItem>
-        {!readOnly && (
-          <FooterListItem
-            onClick={() => {
-              const [title, ...body] = text.split('\n\n')
-              const newNote = {
-                id: id as string,
-                text,
-                title,
-                body: body.join('\n\n'),
-                author: session.user.name ?? '',
-              }
-              updateNote(newNote)
-            }}
-            disabled={text === note?.text}
-          >
-            <ArrowDownOnSquareIcon className='h-6 w-6' />
-          </FooterListItem>
+          <>
+            <FooterListItem>
+              <Link className='flex w-full justify-center py-2' href='/notes'>
+                <Bars2Icon className='h-6 w-6' />
+              </Link>
+            </FooterListItem>
+            <FooterListItem onClick={() => setFooterType('tools')}>
+              <WrenchIcon className='h-6 w-6' />
+            </FooterListItem>
+            <FooterListItem onClick={() => setFooterType('share')}>
+              <ShareIcon className='h-6 w-6' />
+            </FooterListItem>
+            {!readOnly && (
+              <FooterListItem
+                onClick={() => {
+                  const [title, ...body] = text.split('\n\n')
+                  const newNote = {
+                    id: id as string,
+                    text,
+                    title,
+                    body: body.join('\n\n'),
+                    author: session.user.name ?? '',
+                  }
+                  updateNote(newNote)
+                }}
+                disabled={text === note?.text}
+              >
+                <ArrowDownOnSquareIcon className='h-6 w-6' />
+              </FooterListItem>
+            )}
+          </>
         )}
       </Footer>
       <Modal
