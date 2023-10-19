@@ -28,7 +28,13 @@ export const notesRouter = createTRPCRouter({
     }),
   getAll: publicProcedure.query(async ({ ctx }) => {
     try {
-      return await ctx.prisma.note.findMany()
+      return await ctx.prisma.note.findMany({
+        orderBy: [
+          {
+            pinned: 'desc',
+          },
+        ],
+      })
     } catch (error) {
       console.log(error)
     }
@@ -41,6 +47,7 @@ export const notesRouter = createTRPCRouter({
         title: z.string().nullish(),
         body: z.string().nullish(),
         author: z.string(),
+        pinned: z.boolean(),
       })
     )
     .mutation(async ({ ctx, input }) => {
@@ -69,6 +76,7 @@ export const notesRouter = createTRPCRouter({
       const isList = title.startsWith('= ')
       const list = isList ? body.split('\n').filter(item => item !== '') : []
 
+      const pinned = input.pinned ?? false
       const newNote = {
         text,
         title,
@@ -76,6 +84,7 @@ export const notesRouter = createTRPCRouter({
         markdown,
         list,
         author: input.author,
+        pinned,
       }
 
       try {

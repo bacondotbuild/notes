@@ -70,6 +70,9 @@ model Note {
     markdown  String?
     list      String[]
     author    String
+    pinned    Boolean   @default(false)
+    createdAt DateTime  @default(now())
+    // updatedAt DateTime  @updatedAt
     // TODO: Relate to User
     // https://www.prisma.io/docs/concepts/components/prisma-schema/relations
     // author    User @relation(fields: [authorId], references: [id])
