@@ -121,6 +121,7 @@ const Home: NextPage = () => {
                   title,
                   body: body.join('\n\n'),
                   author: session.user.name ?? '',
+                  pinned: false,
                 }
                 saveNote(note)
                 setText('')
