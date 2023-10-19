@@ -270,6 +270,7 @@ const NotePage: NextPage = () => {
                     title,
                     body: body.join('\n\n'),
                     author: session.user.name ?? '',
+                    pinned: false,
                   }
                   updateNote(newNote)
                 }}
