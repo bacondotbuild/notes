@@ -48,6 +48,7 @@ export const notesRouter = createTRPCRouter({
         body: z.string().nullish(),
         author: z.string(),
         pinned: z.boolean(),
+        tags: z.array(z.string()).nullish(),
       })
     )
     .mutation(async ({ ctx, input }) => {
@@ -77,6 +78,7 @@ export const notesRouter = createTRPCRouter({
       const list = isList ? body.split('\n').filter(item => item !== '') : []
 
       const pinned = input.pinned ?? false
+      const tags = input.tags ?? []
       const newNote = {
         text,
         title,
@@ -85,6 +87,7 @@ export const notesRouter = createTRPCRouter({
         list,
         author: input.author,
         pinned,
+        tags,
       }
 
       try {
