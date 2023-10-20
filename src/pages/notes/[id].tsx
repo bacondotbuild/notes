@@ -265,14 +265,13 @@ const NotePage: NextPage = () => {
                 onClick={() => {
                   if (note) {
                     const [title, ...body] = text.split('\n\n')
-                    const { pinned } = note
                     const newNote = {
+                      ...note,
                       id: id as string,
                       text,
                       title,
                       body: body.join('\n\n'),
                       author: session.user.name ?? '',
-                      pinned,
                     }
                     updateNote(newNote)
                   }
