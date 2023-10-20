@@ -56,7 +56,7 @@ const NotePage: NextPage = () => {
   const [text, setText] = useState<string>((note?.text as string) ?? '')
   useEffect(() => {
     setText(note?.text as string)
-  }, [note])
+  }, [note?.text])
   const [mode, setMode] = useLocalStorage<Mode>('home-note-mode', 'text')
   const [footerType, setFooterType] = useState<FooterType>('default')
 
