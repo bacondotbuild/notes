@@ -192,7 +192,7 @@ const NotePage: NextPage = () => {
                 <button
                   className={classNames(
                     'rounded-lg border bg-cb-blue p-2',
-                    selectedTags.includes(tag)
+                    selectedTags?.includes(tag)
                       ? 'border-cb-pink'
                       : 'border-cb-blue'
                   )}
