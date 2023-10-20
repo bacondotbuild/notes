@@ -15,6 +15,7 @@ import {
   ArrowRightOnRectangleIcon,
   BookmarkIcon,
   BookmarkSlashIcon,
+  PlusIcon,
   TagIcon,
   UserGroupIcon,
   UserIcon,
@@ -27,8 +28,9 @@ import Button from '@/components/design/button'
 
 type NotesFilter = 'my' | 'all'
 
-const EditNote = ({ note }: { note: Note }) => {
-  const [tags, setTags] = useState([...note.tags])
+const AddNewTag = ({ note }: { note: Note }) => {
+  const { tags } = note
+  const [newTag, setNewTag] = useState('')
   const utils = api.useContext()
   const { mutate: updateNote } = api.notes.save.useMutation({
     // https://create.t3.gg/en/usage/trpc#optimistic-updates
@@ -60,24 +62,39 @@ const EditNote = ({ note }: { note: Note }) => {
   return (
     <>
       <p>{note?.title}</p>
+      <ul className='flex space-x-2'>
+        {tags.map(tag => (
+          <li
+            key={tag}
+            className='rounded-lg border border-cb-blue bg-cb-blue p-2'
+          >
+            {tag}
+          </li>
+        ))}
+      </ul>
       <input
         type='text'
-        name='tags'
-        value={tags.join(' ')}
+        value={newTag}
         onChange={e => {
           const { value } = e.target
-          setTags(value.split(' '))
+          setNewTag(value)
         }}
         className='w-full bg-cobalt'
+        placeholder='new tag'
       />
       <Button
         onClick={() => {
+          const newTags = [...tags]
+          newTags.push(newTag)
           const newNote = {
             ...note,
-            tags,
+            tags: newTags,
           }
           updateNote(newNote)
+          setNewTag('')
         }}
+        className='disabled:pointer-events-none disabled:opacity-25'
+        disabled={newTag === '' || tags.includes(newTag)}
       >
         <ArrowDownOnSquareIcon className='h-6 w-full' />
       </Button>
@@ -93,6 +110,7 @@ const NotePage: NextPage = () => {
     'my'
   )
   const [isSetTagsModalOpen, setIsSetTagsModalOpen] = useState(false)
+  const [isAddNewTagModalOpen, setIsAddNewTagModalOpen] = useState(false)
   const [selectedNoteId, setSelectedNoteId] = useState<string | null>(null)
   const [selectedTags, setSelectedTags] = useState<string[]>([])
   const selectedNote = selectedNoteId
@@ -149,9 +167,10 @@ const NotePage: NextPage = () => {
 
   const notes = queriedOrUserNotes?.filter(note =>
     selectedTags.length > 0
-      ? note.tags.some(tag => selectedTags.includes(tag))
+      ? selectedTags.every(tag => note.tags.includes(tag))
       : true
   )
+
   return (
     <Page>
       <Main className='flex flex-col p-4'>
@@ -169,10 +188,10 @@ const NotePage: NextPage = () => {
               <li key={tag}>
                 <button
                   className={classNames(
-                    'rounded-lg border bg-cb-dusty-blue p-2',
+                    'rounded-lg border bg-cb-blue p-2',
                     selectedTags.includes(tag)
                       ? 'border-cb-pink'
-                      : 'border-cb-dusty-blue'
+                      : 'border-cb-blue'
                   )}
                   onClick={() => {
                     const index = selectedTags.findIndex(t => t === tag)
@@ -298,9 +317,61 @@ const NotePage: NextPage = () => {
       <Modal
         isOpen={isSetTagsModalOpen}
         setIsOpen={setIsSetTagsModalOpen}
-        title='add tags'
+        title='edit tags'
       >
-        {selectedNote && <EditNote note={selectedNote} />}
+        {selectedNote && (
+          <>
+            <p>{selectedNote.title}</p>
+            <ul className='flex space-x-2'>
+              {allTags.map(tag => (
+                <li key={tag}>
+                  <button
+                    className={classNames(
+                      'rounded-lg border bg-cb-blue p-2',
+                      selectedNote.tags.includes(tag)
+                        ? 'border-cb-pink'
+                        : 'border-cb-blue'
+                    )}
+                    onClick={() => {
+                      const newTags = [...selectedNote.tags]
+                      const index = newTags.findIndex(t => t === tag)
+                      if (index > -1) {
+                        newTags.splice(index, 1)
+                      } else {
+                        newTags.push(tag)
+                      }
+                      const newNote = {
+                        ...selectedNote,
+                        tags: newTags,
+                      }
+                      updateNote(newNote)
+                    }}
+                  >
+                    {tag}
+                  </button>
+                </li>
+              ))}
+              <li>
+                <button
+                  className='rounded-lg border border-cb-blue bg-cb-blue p-2'
+                  onClick={() => {
+                    setIsSetTagsModalOpen(false)
+                    setIsAddNewTagModalOpen(true)
+                  }}
+                >
+                  <PlusIcon className='h-6 w-6 text-cb-yellow' />
+                </button>
+              </li>
+            </ul>
+          </>
+        )}
+      </Modal>
+      <Modal
+        isOpen={isAddNewTagModalOpen}
+        setIsOpen={setIsAddNewTagModalOpen}
+        title='add new tag'
+      >
+        {selectedNote && <AddNewTag note={selectedNote} />}
       </Modal>
     </Page>
   )
