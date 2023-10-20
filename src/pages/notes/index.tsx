@@ -19,7 +19,6 @@ import {
 } from '@heroicons/react/24/solid'
 import Footer, { FooterListItem } from '@/components/design/footer'
 import useLocalStorage from '@/lib/useLocalStorage'
-import { useEffect } from 'react'
 
 type NotesFilter = 'my' | 'all'
 
@@ -30,11 +29,6 @@ const NotePage: NextPage = () => {
     'notes-notesFilter',
     'my'
   )
-  useEffect(() => {
-    if (!session) {
-      setNotesFilter('all')
-    }
-  }, [session, setNotesFilter])
 
   const utils = api.useContext()
   const { mutate: updateNote } = api.notes.save.useMutation({

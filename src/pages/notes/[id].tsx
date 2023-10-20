@@ -263,16 +263,19 @@ const NotePage: NextPage = () => {
             {!readOnly && (
               <FooterListItem
                 onClick={() => {
-                  const [title, ...body] = text.split('\n\n')
-                  const newNote = {
-                    id: id as string,
-                    text,
-                    title,
-                    body: body.join('\n\n'),
-                    author: session.user.name ?? '',
-                    pinned: false,
+                  if (note) {
+                    const [title, ...body] = text.split('\n\n')
+                    const { pinned } = note
+                    const newNote = {
+                      id: id as string,
+                      text,
+                      title,
+                      body: body.join('\n\n'),
+                      author: session.user.name ?? '',
+                      pinned,
+                    }
+                    updateNote(newNote)
                   }
-                  updateNote(newNote)
                 }}
                 disabled={text === note?.text}
               >
