@@ -112,7 +112,10 @@ const NotePage: NextPage = () => {
   const [isSetTagsModalOpen, setIsSetTagsModalOpen] = useState(false)
   const [isAddNewTagModalOpen, setIsAddNewTagModalOpen] = useState(false)
   const [selectedNoteId, setSelectedNoteId] = useState<string | null>(null)
-  const [selectedTags, setSelectedTags] = useState<string[]>([])
+  const [selectedTags, setSelectedTags] = useLocalStorage<string[]>(
+    'notes-selectedTags',
+    []
+  )
   const selectedNote = selectedNoteId
     ? queriedNotes?.find(note => note.id === selectedNoteId)
     : null
@@ -166,7 +169,7 @@ const NotePage: NextPage = () => {
     : []
 
   const notes = queriedOrUserNotes?.filter(note =>
-    selectedTags.length > 0
+    selectedTags?.length > 0
       ? selectedTags.every(tag => note.tags.includes(tag))
       : true
   )
@@ -266,8 +269,14 @@ const NotePage: NextPage = () => {
               </li>
             ))}
           </ul>
+        ) : session ? (
+          <p className='py-2'>
+            {notesFilter === 'all'
+              ? 'no notes'
+              : "you have no notes (or maybe they ' all filtered?)"}
+          </p>
         ) : (
-          <p>
+          <p className='py-2'>
             {notesFilter === 'all' ? 'no notes' : 'login to see your notes!'}
           </p>
         )}
