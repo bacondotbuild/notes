@@ -33,6 +33,9 @@ export const notesRouter = createTRPCRouter({
           {
             pinned: 'desc',
           },
+          {
+            updatedAt: 'desc',
+          },
         ],
       })
     } catch (error) {
