@@ -1,9 +1,11 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { type NextPage } from 'next'
 import Link from 'next/link'
+import { useRouter } from 'next/router'
 import { signIn, signOut, useSession } from 'next-auth/react'
 import classNames from 'classnames'
 import type { Note } from '@prisma/client'
+import Fuse from 'fuse.js'
 
 import Main from '@/components/design/main'
 import Page from '@/components/page'
@@ -102,7 +104,15 @@ const AddNewTag = ({ note }: { note: Note }) => {
   )
 }
 
-const NotePage: NextPage = () => {
+const NotesPage: NextPage = () => {
+  const router = useRouter()
+  const { query } = router
+  const [search, setSearch] = useState(query.q || '')
+  useEffect(() => {
+    if (query.q) {
+      setSearch(query.q)
+    }
+  }, [query])
   const { data: session } = useSession()
   const { data: queriedNotes, isLoading } = api.notes.getAll.useQuery()
   const [notesFilter, setNotesFilter] = useLocalStorage<NotesFilter>(
@@ -168,15 +178,24 @@ const NotePage: NextPage = () => {
       ]
     : []
 
-  const notes = queriedOrUserNotes?.filter(note =>
+  const taggedNotes = queriedOrUserNotes?.filter(note =>
     selectedTags?.length > 0
       ? selectedTags.every(tag => note.tags.includes(tag))
       : true
   )
 
+  const fuse = new Fuse(taggedNotes || [], {
+    keys: ['id', { name: 'title', weight: 2 }, { name: 'body', weight: 1 }],
+  })
+  const filteredNotes = !search
+    ? []
+    : fuse.search((search as string).toLowerCase()).map(({ item }) => item)
+
+  const notes = filteredNotes.length > 0 ? filteredNotes : taggedNotes
+
   return (
     <Page>
-      <Main className='flex flex-col p-4'>
+      <Main className='flex flex-col space-y-4 p-4'>
         {session ? (
           <div className='flex justify-end space-x-2'>
             <UserIcon className='h-6 w-6' />
@@ -185,6 +204,27 @@ const NotePage: NextPage = () => {
         ) : (
           <p>notes</p>
         )}
+        <div className='flex'>
+          <input
+            type='text'
+            className='w-full bg-cb-blue'
+            placeholder='search'
+            value={search}
+            onChange={e => {
+              const { value } = e.target
+              setSearch(value)
+              const url = {
+                pathname: router.pathname,
+                query: value
+                  ? {
+                      q: value,
+                    }
+                  : undefined,
+              }
+              router.push(url).catch(err => console.log(err))
+            }}
+          />
+        </div>
         {allTags.length > 0 && (
           <ul className='flex space-x-2'>
             {allTags.map(tag => (
@@ -224,7 +264,7 @@ const NotePage: NextPage = () => {
               >
                 <Link className='text-cb-pink' href={`notes/${note.id}`}>
                   <div>
-                    {note.title}
+                    {note?.title}
                     {notesFilter === 'all' ? ` - ${note.author}` : ''}
                   </div>
                   <div>{note.tags.join(' ')}</div>
@@ -386,4 +426,4 @@ const NotePage: NextPage = () => {
   )
 }
 
-export default NotePage
+export default NotesPage
