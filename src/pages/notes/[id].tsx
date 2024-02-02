@@ -112,7 +112,7 @@ const NotePage: NextPage = () => {
                 items={textAsList
                   // TODO: Add back after figuring out how to address bug where title can be multiple lines
                   // .filter(item => item)
-                  .map(item => ({ id: item, item }))}
+                  .map((item, index) => ({ id: `${item}-${index}`, item }))}
                 renderItem={({ item }: { item: string }, index: number) => (
                   <div key={index} className='rounded-lg bg-cobalt p-3'>
                     {index + 1}. {item}
