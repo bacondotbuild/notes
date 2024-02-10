@@ -115,12 +115,19 @@ const NotePage: NextPage = () => {
         e.preventDefault()
         saveNote()
       }
+      if (e.key === 'Escape') {
+        if (hasChanges) {
+          setIsDiscardChangesModalOpen(true)
+        } else {
+          push('/notes').catch(err => console.log(err))
+        }
+      }
     }
     window.addEventListener('keydown', onKeydown)
     return () => {
       window.removeEventListener('keydown', onKeydown)
     }
-  }, [saveNote])
+  }, [saveNote, hasChanges, setIsDiscardChangesModalOpen, push])
   return (
     <Page>
       <Main className='flex flex-col p-4'>
