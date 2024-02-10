@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { type NextPage } from 'next'
 import { useRouter } from 'next/router'
 import Link from 'next/link'
@@ -22,12 +22,12 @@ import { toast } from 'react-toastify'
 import Main from '@/components/design/main'
 import Page from '@/components/page'
 import DragDropList from '@/components/dragDropList'
+import Modal from '@/components/modal'
 import Footer, { FooterListItem } from '@/components/design/footer'
+import Button from '@/components/design/button'
 import useLocalStorage from '@/lib/useLocalStorage'
 import copyToClipboard from '@/lib/copyToClipboard'
 import { api } from '@/lib/api'
-import Modal from '@/components/modal'
-import Button from '@/components/design/button'
 
 type Mode = 'text' | 'list'
 
@@ -93,6 +93,34 @@ const NotePage: NextPage = () => {
 
   const readOnly = !session || session?.user?.name !== note?.author
   const hasChanges = text !== note?.text
+
+  const saveNote = useCallback(() => {
+    if (note) {
+      const [title, ...body] = text.split('\n\n')
+      const newNote = {
+        ...note,
+        id: id as string,
+        text,
+        title,
+        body: body.join('\n\n'),
+        author: session?.user.name ?? '',
+      }
+      updateNote(newNote)
+    }
+  }, [note, id, session, text, updateNote])
+
+  useEffect(() => {
+    function onKeydown(e: KeyboardEvent) {
+      if (e.key === 's' && e.metaKey) {
+        e.preventDefault()
+        saveNote()
+      }
+    }
+    window.addEventListener('keydown', onKeydown)
+    return () => {
+      window.removeEventListener('keydown', onKeydown)
+    }
+  }, [saveNote])
   return (
     <Page>
       <Main className='flex flex-col p-4'>
@@ -272,23 +300,7 @@ const NotePage: NextPage = () => {
               <ShareIcon className='h-6 w-6' />
             </FooterListItem>
             {!readOnly && (
-              <FooterListItem
-                onClick={() => {
-                  if (note) {
-                    const [title, ...body] = text.split('\n\n')
-                    const newNote = {
-                      ...note,
-                      id: id as string,
-                      text,
-                      title,
-                      body: body.join('\n\n'),
-                      author: session.user.name ?? '',
-                    }
-                    updateNote(newNote)
-                  }
-                }}
-                disabled={!hasChanges}
-              >
+              <FooterListItem onClick={saveNote} disabled={!hasChanges}>
                 <ArrowDownOnSquareIcon className='h-6 w-6' />
               </FooterListItem>
             )}
