@@ -44,6 +44,8 @@ const NotePage: NextPage = () => {
   )
   const textAreaRef = useRef<HTMLTextAreaElement>(null)
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false)
+  const [isDiscardChangesModalOpen, setIsDiscardChangesModalOpen] =
+    useState(false)
   const { data: session } = useSession()
   const {
     query: { id },
@@ -90,6 +92,7 @@ const NotePage: NextPage = () => {
   const { mutate: deleteNote } = api.notes.delete.useMutation()
 
   const readOnly = !session || session?.user?.name !== note?.author
+  const hasChanges = text !== note?.text
   return (
     <Page>
       <Main className='flex flex-col p-4'>
@@ -249,11 +252,19 @@ const NotePage: NextPage = () => {
           </>
         ) : (
           <>
-            <FooterListItem>
-              <Link className='flex w-full justify-center py-2' href='/notes'>
+            {hasChanges ? (
+              <FooterListItem
+                onClick={() => setIsDiscardChangesModalOpen(true)}
+              >
                 <Bars2Icon className='h-6 w-6' />
-              </Link>
-            </FooterListItem>
+              </FooterListItem>
+            ) : (
+              <FooterListItem>
+                <Link className='flex w-full justify-center py-2' href='/notes'>
+                  <Bars2Icon className='h-6 w-6' />
+                </Link>
+              </FooterListItem>
+            )}
             <FooterListItem onClick={() => setFooterType('tools')}>
               <WrenchIcon className='h-6 w-6' />
             </FooterListItem>
@@ -276,7 +287,7 @@ const NotePage: NextPage = () => {
                     updateNote(newNote)
                   }
                 }}
-                disabled={text === note?.text}
+                disabled={!hasChanges}
               >
                 <ArrowDownOnSquareIcon className='h-6 w-6' />
               </FooterListItem>
@@ -301,6 +312,24 @@ const NotePage: NextPage = () => {
           <Button
             onClick={() => {
               setIsConfirmModalOpen(false)
+            }}
+          >
+            no
+          </Button>
+        </div>
+      </Modal>
+      <Modal
+        isOpen={isDiscardChangesModalOpen}
+        setIsOpen={setIsDiscardChangesModalOpen}
+        title='discard changes?'
+      >
+        <div className='flex space-x-4'>
+          <Button href='/notes' internal>
+            yes
+          </Button>
+          <Button
+            onClick={() => {
+              setIsDiscardChangesModalOpen(false)
             }}
           >
             no
