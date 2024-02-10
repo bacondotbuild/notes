@@ -1,3 +1,4 @@
+import { useCallback, useEffect } from 'react'
 import { type NextPage } from 'next'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
@@ -12,6 +13,7 @@ import {
   PencilSquareIcon,
 } from '@heroicons/react/24/solid'
 import { signIn, useSession } from 'next-auth/react'
+import classNames from 'classnames'
 import { toast } from 'react-toastify'
 
 import Main from '@/components/design/main'
@@ -21,7 +23,6 @@ import Footer, { FooterListItem } from '@/components/design/footer'
 import useLocalStorage from '@/lib/useLocalStorage'
 import copyToClipboard from '@/lib/copyToClipboard'
 import { api } from '@/lib/api'
-import classNames from 'classnames'
 
 type Mode = 'text' | 'list'
 
@@ -38,6 +39,37 @@ const Home: NextPage = () => {
 
   const { push } = useRouter()
   const { data, mutate: saveNote, isSuccess } = api.notes.save.useMutation()
+
+  const save = useCallback(() => {
+    if (text !== '') {
+      const [title, ...body] = text.split('\n\n')
+      const note = {
+        text,
+        title,
+        body: body.join('\n\n'),
+        author: session?.user.name ?? '',
+        pinned: false,
+      }
+      saveNote(note)
+      setText('')
+    }
+  }, [saveNote, session, setText, text])
+
+  useEffect(() => {
+    function onKeydown(e: KeyboardEvent) {
+      if (e.key === 's' && e.metaKey) {
+        e.preventDefault()
+        save()
+      }
+      if (e.key === 'Escape') {
+        push('/notes').catch(err => console.log(err))
+      }
+    }
+    window.addEventListener('keydown', onKeydown)
+    return () => {
+      window.removeEventListener('keydown', onKeydown)
+    }
+  }, [save, push])
 
   if (isSuccess && data) {
     const { id } = data
@@ -113,20 +145,7 @@ const Home: NextPage = () => {
             <DocumentDuplicateIcon className='h-6 w-6' />
           </FooterListItem>
           {session ? (
-            <FooterListItem
-              onClick={() => {
-                const [title, ...body] = text.split('\n\n')
-                const note = {
-                  text,
-                  title,
-                  body: body.join('\n\n'),
-                  author: session.user.name ?? '',
-                  pinned: false,
-                }
-                saveNote(note)
-                setText('')
-              }}
-            >
+            <FooterListItem onClick={save} disabled={text === ''}>
               <ArrowDownOnSquareIcon className='h-6 w-6' />
             </FooterListItem>
           ) : (
