@@ -69,6 +69,7 @@ model Note {
     body      String
     markdown  String?
     list      String[]
+    yml       String?
     author    String
     pinned    Boolean   @default(false)
     tags      String[]

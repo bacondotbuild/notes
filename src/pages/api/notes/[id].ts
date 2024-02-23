@@ -1,4 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
+import { parse } from 'yaml'
 
 import { prisma } from '@/server/db'
 
@@ -16,7 +17,12 @@ export default async function handler(
         id: id as string,
       },
     })
-    res.json(note)
+    const { yml } = note ?? {}
+    const parsedYml: unknown = yml ? parse(yml) : {}
+    res.json({
+      ...note,
+      yml: yml ? parsedYml : '',
+    })
   } catch (error) {
     console.log(error)
     res.json({ error })

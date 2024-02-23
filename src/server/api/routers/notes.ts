@@ -80,6 +80,9 @@ export const notesRouter = createTRPCRouter({
       const isList = title.startsWith('= ')
       const list = isList ? body.split('\n').filter(item => item !== '') : []
 
+      const isYml = title.startsWith('< ')
+      const yml = isYml ? body : ''
+
       const pinned = input.pinned ?? false
       const tags = input.tags ?? []
       const newNote = {
@@ -88,6 +91,7 @@ export const notesRouter = createTRPCRouter({
         body,
         markdown,
         list,
+        yml,
         author: input.author,
         pinned,
         tags,
