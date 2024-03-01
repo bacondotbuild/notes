@@ -226,7 +226,7 @@ const NotesPage: NextPage = () => {
           />
         </div>
         {allTags.length > 0 && (
-          <ul className='flex space-x-2'>
+          <ul className='flex space-x-2 overflow-x-auto'>
             {allTags.map(tag => (
               <li key={tag}>
                 <button
