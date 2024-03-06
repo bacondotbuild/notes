@@ -371,7 +371,7 @@ const NotesPage: NextPage = () => {
         {selectedNote && (
           <>
             <p>{selectedNote.title}</p>
-            <ul className='flex space-x-2'>
+            <ul className='grid grid-cols-6 gap-2'>
               {allTags.map(tag => (
                 <li key={tag}>
                   <button
