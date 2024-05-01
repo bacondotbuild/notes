@@ -210,14 +210,15 @@ export default function NotesPage() {
   return (
     <Page>
       <Main className='flex flex-col space-y-4 p-4'>
-        {session ? (
-          <div className='flex justify-end space-x-2'>
-            <UserIcon className='h-6 w-6' />
-            <span>{session.user?.name}</span>
-          </div>
-        ) : (
-          <p>notes</p>
-        )}
+        <div className='flex'>
+          <h1>notes</h1>
+          {session && (
+            <div className='flex flex-grow justify-end space-x-2'>
+              <UserIcon className='h-6 w-6' />
+              <span>{session.user?.name}</span>
+            </div>
+          )}
+        </div>
         <div className='flex'>
           <input
             ref={searchRef}
