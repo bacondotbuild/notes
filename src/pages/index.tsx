@@ -1,5 +1,4 @@
 import { useCallback, useEffect } from 'react'
-import { type NextPage } from 'next'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
 import {
@@ -26,7 +25,7 @@ import { api } from '@/lib/api'
 
 type Mode = 'text' | 'list'
 
-const Home: NextPage = () => {
+export default function Home() {
   const { data: session } = useSession()
   const [text, setText] = useLocalStorage('home-note-text', '')
   const [mode, setMode] = useLocalStorage<Mode>('home-note-mode', 'text')
@@ -162,5 +161,3 @@ const Home: NextPage = () => {
     </Page>
   )
 }
-
-export default Home

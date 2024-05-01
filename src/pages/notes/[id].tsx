@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { type NextPage } from 'next'
 import { useRouter } from 'next/router'
 import Link from 'next/link'
 import type { Note } from '@prisma/client'
@@ -33,7 +32,7 @@ type Mode = 'text' | 'list'
 
 type FooterType = 'default' | 'tools' | 'share'
 
-const NotePage: NextPage = () => {
+export default function NotePage() {
   const currentUrl =
     typeof window !== 'undefined' ? window?.location.href : null
   const [currentSelectionStart, setCurrentSelectionStart] = useState<
@@ -358,5 +357,3 @@ const NotePage: NextPage = () => {
     </Page>
   )
 }
-
-export default NotePage
