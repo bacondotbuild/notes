@@ -1,11 +1,9 @@
 import { useEffect, useState } from 'react'
-import { type NextPage } from 'next'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
 import { signIn, signOut, useSession } from 'next-auth/react'
 import classNames from 'classnames'
 import type { Note } from '@prisma/client'
-import Fuse from 'fuse.js'
 
 import Main from '@/components/design/main'
 import Page from '@/components/page'
@@ -24,9 +22,10 @@ import {
   XMarkIcon,
 } from '@heroicons/react/24/solid'
 import Footer, { FooterListItem } from '@/components/design/footer'
-import useLocalStorage from '@/lib/useLocalStorage'
 import Modal from '@/components/modal'
 import Button from '@/components/design/button'
+import useLocalStorage from '@/lib/useLocalStorage'
+import useSearch from '@/lib/useSearch'
 
 type NotesFilter = 'my' | 'all'
 
@@ -104,15 +103,9 @@ const AddNewTag = ({ note }: { note: Note }) => {
   )
 }
 
-const NotesPage: NextPage = () => {
+export default function NotesPage() {
   const router = useRouter()
-  const { query } = router
-  const [search, setSearch] = useState(query.q || '')
-  useEffect(() => {
-    if (query.q) {
-      setSearch(query.q)
-    }
-  }, [query])
+  const { query, push } = router
   const { data: session } = useSession()
   const { data: queriedNotes, isLoading } = api.notes.getAll.useQuery()
   const [notesFilter, setNotesFilter] = useLocalStorage<NotesFilter>(
@@ -184,14 +177,35 @@ const NotesPage: NextPage = () => {
       : true
   )
 
-  const fuse = new Fuse(taggedNotes || [], {
-    keys: ['id', { name: 'title', weight: 2 }, { name: 'body', weight: 1 }],
-  })
-  const filteredNotes = !search
-    ? []
-    : fuse.search((search as string).toLowerCase()).map(({ item }) => item)
+  const { search, setSearch, results, searchRef } = useSearch({
+    initialSearch: query.q ? String(query.q) : '',
+    list: taggedNotes || [],
 
-  const notes = filteredNotes.length > 0 ? filteredNotes : taggedNotes
+    options: {
+      keys: ['title', 'body'],
+    },
+  })
+  useEffect(() => {
+    if (query.q) {
+      setSearch(String(query.q))
+    }
+  }, [query, setSearch])
+  useEffect(() => {
+    function onKeydown(e: KeyboardEvent) {
+      if (e.key === 'Escape') {
+        push('/').catch(err => console.log(err))
+      }
+      if (e.key === 'f' && e.ctrlKey) {
+        searchRef?.current?.focus()
+      }
+    }
+    window.addEventListener('keydown', onKeydown)
+    return () => {
+      window.removeEventListener('keydown', onKeydown)
+    }
+  }, [push, searchRef])
+
+  const notes = results
 
   return (
     <Page>
@@ -206,6 +220,7 @@ const NotesPage: NextPage = () => {
         )}
         <div className='flex'>
           <input
+            ref={searchRef}
             type='text'
             className='w-full bg-cb-blue'
             placeholder='search'
@@ -425,5 +440,3 @@ const NotesPage: NextPage = () => {
     </Page>
   )
 }
-
-export default NotesPage
