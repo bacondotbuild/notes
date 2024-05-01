@@ -81,7 +81,6 @@ export default function Home() {
           className='text-cb-yellow'
           type='button'
           onClick={() => {
-            console.log({ isFullScreen })
             setIsFullScreen(!isFullScreen)
           }}
         >

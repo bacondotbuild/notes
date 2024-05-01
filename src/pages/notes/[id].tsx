@@ -6,6 +6,8 @@ import { useSession } from 'next-auth/react'
 import {
   ArrowDownOnSquareIcon,
   ArrowSmallRightIcon,
+  ArrowsPointingInIcon,
+  ArrowsPointingOutIcon,
   Bars2Icon,
   DocumentDuplicateIcon,
   LinkIcon,
@@ -17,6 +19,7 @@ import {
   XMarkIcon,
 } from '@heroicons/react/24/solid'
 import { toast } from 'react-toastify'
+import classNames from 'classnames'
 
 import Main from '@/components/design/main'
 import Page from '@/components/page'
@@ -59,6 +62,10 @@ export default function NotePage() {
     setText(note?.text as string)
   }, [note?.text])
   const [mode, setMode] = useLocalStorage<Mode>('home-note-mode', 'text')
+  const [isFullScreen, setIsFullScreen] = useLocalStorage<boolean>(
+    'home-note-fullscreen',
+    false
+  )
   const [footerType, setFooterType] = useState<FooterType>('default')
 
   const textAsList = (text ?? '').split('\n')
@@ -129,7 +136,22 @@ export default function NotePage() {
   }, [saveNote, hasChanges, setIsDiscardChangesModalOpen, push])
   return (
     <Page>
-      <Main className='flex flex-col p-4'>
+      <div className='absolute top-2 right-2'>
+        <button
+          className='text-cb-yellow'
+          type='button'
+          onClick={() => {
+            setIsFullScreen(!isFullScreen)
+          }}
+        >
+          {isFullScreen ? (
+            <ArrowsPointingInIcon className='h-6 w-6' />
+          ) : (
+            <ArrowsPointingOutIcon className='h-6 w-6' />
+          )}
+        </button>
+      </div>
+      <Main className={classNames('flex flex-col', !isFullScreen && 'p-4')}>
         {mode === 'list' ? (
           <div className='space-y-3'>
             {readOnly ? ( // TODO: Refactor repeated code
@@ -215,104 +237,109 @@ export default function NotePage() {
           />
         )}
       </Main>
-      <Footer>
-        {footerType === 'tools' ? (
-          <>
-            <FooterListItem onClick={() => setFooterType('default')}>
-              <XMarkIcon className='h-6 w-6' />
-            </FooterListItem>
-            {mode === 'text' ? (
-              <FooterListItem onClick={() => setMode('list')}>
-                <ListBulletIcon className='h-6 w-6' />
+      {!isFullScreen && (
+        <Footer>
+          {footerType === 'tools' ? (
+            <>
+              <FooterListItem onClick={() => setFooterType('default')}>
+                <XMarkIcon className='h-6 w-6' />
               </FooterListItem>
-            ) : (
-              <FooterListItem onClick={() => setMode('text')}>
-                <PencilSquareIcon className='h-6 w-6' />
-              </FooterListItem>
-            )}
-            <FooterListItem
-              onClick={() => {
-                // add tab
-                const newText =
-                  text.substring(0, currentSelectionStart ?? undefined) +
-                  '\t' +
-                  text.substring(currentSelectionEnd ?? 0, text.length)
-
-                if (
-                  textAreaRef.current &&
-                  typeof currentSelectionStart === 'number'
-                ) {
-                  textAreaRef.current.focus()
-                  textAreaRef.current.value = newText
-
-                  textAreaRef.current.setSelectionRange(
-                    currentSelectionStart + 1,
-                    currentSelectionStart + 1
-                  )
-                }
-
-                setText(newText)
-              }}
-            >
-              <ArrowSmallRightIcon className='h-6 w-6' />
-            </FooterListItem>
-            {!readOnly && (
-              <FooterListItem onClick={() => setIsConfirmModalOpen(true)}>
-                <TrashIcon className='h-6 w-6 text-red-600' />
-              </FooterListItem>
-            )}
-          </>
-        ) : footerType === 'share' ? (
-          <>
-            <FooterListItem onClick={() => setFooterType('default')}>
-              <XMarkIcon className='h-6 w-6' />
-            </FooterListItem>
-            <FooterListItem
-              onClick={() => {
-                copyToClipboard(text)
-                toast.success('copied text to clipboard')
-              }}
-            >
-              <DocumentDuplicateIcon className='h-6 w-6' />
-            </FooterListItem>
-            <FooterListItem
-              onClick={() => {
-                copyToClipboard(currentUrl || '')
-                toast.success('copied url to clipboard')
-              }}
-            >
-              <LinkIcon className='h-6 w-6' />
-            </FooterListItem>
-          </>
-        ) : (
-          <>
-            {hasChanges ? (
+              {mode === 'text' ? (
+                <FooterListItem onClick={() => setMode('list')}>
+                  <ListBulletIcon className='h-6 w-6' />
+                </FooterListItem>
+              ) : (
+                <FooterListItem onClick={() => setMode('text')}>
+                  <PencilSquareIcon className='h-6 w-6' />
+                </FooterListItem>
+              )}
               <FooterListItem
-                onClick={() => setIsDiscardChangesModalOpen(true)}
+                onClick={() => {
+                  // add tab
+                  const newText =
+                    text.substring(0, currentSelectionStart ?? undefined) +
+                    '\t' +
+                    text.substring(currentSelectionEnd ?? 0, text.length)
+
+                  if (
+                    textAreaRef.current &&
+                    typeof currentSelectionStart === 'number'
+                  ) {
+                    textAreaRef.current.focus()
+                    textAreaRef.current.value = newText
+
+                    textAreaRef.current.setSelectionRange(
+                      currentSelectionStart + 1,
+                      currentSelectionStart + 1
+                    )
+                  }
+
+                  setText(newText)
+                }}
               >
-                <Bars2Icon className='h-6 w-6' />
+                <ArrowSmallRightIcon className='h-6 w-6' />
               </FooterListItem>
-            ) : (
-              <FooterListItem>
-                <Link className='flex w-full justify-center py-2' href='/notes'>
+              {!readOnly && (
+                <FooterListItem onClick={() => setIsConfirmModalOpen(true)}>
+                  <TrashIcon className='h-6 w-6 text-red-600' />
+                </FooterListItem>
+              )}
+            </>
+          ) : footerType === 'share' ? (
+            <>
+              <FooterListItem onClick={() => setFooterType('default')}>
+                <XMarkIcon className='h-6 w-6' />
+              </FooterListItem>
+              <FooterListItem
+                onClick={() => {
+                  copyToClipboard(text)
+                  toast.success('copied text to clipboard')
+                }}
+              >
+                <DocumentDuplicateIcon className='h-6 w-6' />
+              </FooterListItem>
+              <FooterListItem
+                onClick={() => {
+                  copyToClipboard(currentUrl || '')
+                  toast.success('copied url to clipboard')
+                }}
+              >
+                <LinkIcon className='h-6 w-6' />
+              </FooterListItem>
+            </>
+          ) : (
+            <>
+              {hasChanges ? (
+                <FooterListItem
+                  onClick={() => setIsDiscardChangesModalOpen(true)}
+                >
                   <Bars2Icon className='h-6 w-6' />
-                </Link>
+                </FooterListItem>
+              ) : (
+                <FooterListItem>
+                  <Link
+                    className='flex w-full justify-center py-2'
+                    href='/notes'
+                  >
+                    <Bars2Icon className='h-6 w-6' />
+                  </Link>
+                </FooterListItem>
+              )}
+              <FooterListItem onClick={() => setFooterType('tools')}>
+                <WrenchIcon className='h-6 w-6' />
               </FooterListItem>
-            )}
-            <FooterListItem onClick={() => setFooterType('tools')}>
-              <WrenchIcon className='h-6 w-6' />
-            </FooterListItem>
-            <FooterListItem onClick={() => setFooterType('share')}>
-              <ShareIcon className='h-6 w-6' />
-            </FooterListItem>
-            {!readOnly && (
-              <FooterListItem onClick={saveNote} disabled={!hasChanges}>
-                <ArrowDownOnSquareIcon className='h-6 w-6' />
+              <FooterListItem onClick={() => setFooterType('share')}>
+                <ShareIcon className='h-6 w-6' />
               </FooterListItem>
-            )}
-          </>
-        )}
-      </Footer>
+              {!readOnly && (
+                <FooterListItem onClick={saveNote} disabled={!hasChanges}>
+                  <ArrowDownOnSquareIcon className='h-6 w-6' />
+                </FooterListItem>
+              )}
+            </>
+          )}
+        </Footer>
+      )}
       <Modal
         isOpen={isConfirmModalOpen && !readOnly}
         setIsOpen={setIsConfirmModalOpen}
