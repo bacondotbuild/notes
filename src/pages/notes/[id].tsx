@@ -193,7 +193,8 @@ export default function NotePage() {
               setText(e.target.value)
             }}
             onKeyDown={e => {
-              if (e.key == 'Tab') {
+              const { key, altKey } = e
+              if (key === 'Tab') {
                 e.preventDefault()
                 const { selectionStart, selectionEnd } =
                   e.target as HTMLInputElement
@@ -214,6 +215,54 @@ export default function NotePage() {
                 }
 
                 setText(newText)
+              } else if (altKey && (key === 'ArrowUp' || key === 'ArrowDown')) {
+                e.preventDefault()
+                const { selectionStart } = e.target as HTMLInputElement
+                const contentArray = text.split('\n')
+                let index = 0
+                let currentLength = 0
+                for (let i = 0; i < contentArray.length; i++) {
+                  const currentItem = contentArray[i]
+                  if (
+                    currentItem &&
+                    currentLength + currentItem.length + 1 >
+                      Number(selectionStart)
+                  ) {
+                    index = i
+                    break
+                  }
+                  currentLength += (currentItem?.length ?? 0) + 1 // for \n
+                }
+                const offset = Number(selectionStart) - currentLength
+                const swapLines = (direction: 'ArrowUp' | 'ArrowDown') => {
+                  if (textAreaRef.current) {
+                    const swapIndex = index + (direction === 'ArrowUp' ? -1 : 1)
+                    const item = contentArray[index] ?? ''
+                    const removed = contentArray.splice(swapIndex, 1, item)[0]
+                    contentArray[index] = removed ?? ''
+                    textAreaRef.current?.focus()
+                    textAreaRef.current.value = contentArray.join('\n')
+                    // set cursor
+                    const newStart =
+                      contentArray.reduce(
+                        (total, line, idx) =>
+                          idx <= swapIndex - 1
+                            ? total + line.length + 1
+                            : total,
+                        0
+                      ) + offset
+                    textAreaRef.current?.setSelectionRange(newStart, newStart)
+                  }
+                  setText(contentArray.join('\n'))
+                }
+                if (key === 'ArrowUp') {
+                  if (index > 0) {
+                    swapLines(key)
+                  }
+                } else if (index + 1 < contentArray.length) {
+                  // ArrowDown
+                  swapLines(key)
+                }
               }
             }}
             onKeyUp={e => {
