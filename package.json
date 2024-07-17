@@ -10,6 +10,7 @@
     "start": "next start"
   },
   "dependencies": {
+    "@clerk/nextjs": "^5.2.4",
     "@headlessui/react": "^1.7.9",
     "@hello-pangea/dnd": "^16.2.0",
     "@heroicons/react": "^2.0.14",

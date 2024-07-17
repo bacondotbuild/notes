@@ -1,9 +1,16 @@
 import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
-import { signIn, signOut, useSession } from 'next-auth/react'
 import classNames from 'classnames'
 import type { Note } from '@prisma/client'
+import {
+  SignInButton,
+  SignedIn,
+  SignedOut,
+  UserButton,
+  useAuth,
+  useUser,
+} from '@clerk/nextjs'
 
 import Main from '@/components/design/main'
 import Page from '@/components/page'
@@ -11,7 +18,6 @@ import LoadingIcon from '@/components/loading-icon'
 import { api } from '@/lib/api'
 import {
   ArrowDownOnSquareIcon,
-  ArrowLeftOnRectangleIcon,
   ArrowRightOnRectangleIcon,
   BookmarkIcon,
   BookmarkSlashIcon,
@@ -104,9 +110,11 @@ const AddNewTag = ({ note }: { note: Note }) => {
 }
 
 export default function NotesPage() {
+  const { isSignedIn } = useAuth()
+  const { user } = useUser()
+
   const router = useRouter()
   const { query, push } = router
-  const { data: session } = useSession()
   const { data: queriedNotes, isLoading } = api.notes.getAll.useQuery()
   const [notesFilter, setNotesFilter] = useLocalStorage<NotesFilter>(
     'notes-notesFilter',
@@ -152,9 +160,9 @@ export default function NotesPage() {
     },
   })
 
-  const userNotes = session
+  const userNotes = isSignedIn
     ? queriedNotes
-        ?.filter(note => note.author === session.user.name)
+        ?.filter(note => note.author === user?.username)
         .sort(note => (note.pinned ? 1 : 0))
     : []
 
@@ -204,7 +212,6 @@ export default function NotesPage() {
         searchRef?.current?.focus()
       }
       if (e.key === 't' && e.ctrlKey) {
-        console.log({ focusTabs })
         if (!focusTabs) {
           setFocusTabs(true)
           firstTagButtonRef?.current?.focus()
@@ -221,21 +228,28 @@ export default function NotesPage() {
     return () => {
       window.removeEventListener('keydown', onKeydown)
     }
-  }, [push, searchRef])
+  }, [push, searchRef, currentlyFocusedNoteId, focusTabs])
 
   const notes = results
 
   return (
     <Page>
       <Main className='flex flex-col space-y-4 p-4'>
-        <div className='flex'>
+        <div className='flex items-center'>
           <h1>notes</h1>
-          {session && (
-            <div className='flex flex-grow justify-end space-x-2'>
-              <UserIcon className='h-6 w-6' />
-              <span>{session.user?.name}</span>
-            </div>
-          )}
+          <div className='flex flex-grow justify-end'>
+            <SignedOut>
+              <SignInButton>
+                <ArrowRightOnRectangleIcon className='h-6 w-6 hover:cursor-pointer' />
+              </SignInButton>
+            </SignedOut>
+            <SignedIn>
+              <div className='flex space-x-2 text-cb-white'>
+                <span>{user?.username}</span>
+                <UserButton />
+              </div>
+            </SignedIn>
+          </div>
         </div>
         <div className='flex'>
           <input
@@ -318,7 +332,7 @@ export default function NotesPage() {
                     )}
                   </div>
 
-                  {session && notesFilter === 'my' && (
+                  {isSignedIn && notesFilter === 'my' && (
                     <div className='flex space-x-2'>
                       <button
                         type='button'
@@ -365,7 +379,7 @@ export default function NotesPage() {
               </li>
             ))}
           </ul>
-        ) : session ? (
+        ) : isSignedIn ? (
           <p className='py-2'>
             {notesFilter === 'all'
               ? 'no notes'
@@ -401,23 +415,20 @@ export default function NotesPage() {
           </FooterListItem>
         )}
 
-        {session ? (
-          <FooterListItem
-            onClick={() => {
-              signOut().catch(err => console.log(err))
-            }}
-          >
-            <ArrowLeftOnRectangleIcon className='h-6 w-6' />
-          </FooterListItem>
-        ) : (
-          <FooterListItem
-            onClick={() => {
-              signIn('discord').catch(err => console.log(err))
-            }}
-          >
-            <ArrowRightOnRectangleIcon className='h-6 w-6' />
-          </FooterListItem>
-        )}
+        <FooterListItem>
+          <SignedOut>
+            <SignInButton>
+              <span className='flex w-full justify-center py-2 hover:cursor-pointer'>
+                <ArrowRightOnRectangleIcon className='h-6 w-6' />
+              </span>
+            </SignInButton>
+          </SignedOut>
+          <SignedIn>
+            <span className='flex w-full justify-center py-2'>
+              <UserButton />
+            </span>
+          </SignedIn>
+        </FooterListItem>
       </Footer>
       <Modal
         isOpen={isSetTagsModalOpen}

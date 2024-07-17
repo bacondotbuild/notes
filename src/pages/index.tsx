@@ -11,9 +11,16 @@ import {
   ListBulletIcon,
   PencilSquareIcon,
 } from '@heroicons/react/24/solid'
-import { signIn, useSession } from 'next-auth/react'
 import classNames from 'classnames'
 import { toast } from 'react-toastify'
+import {
+  SignInButton,
+  SignedIn,
+  SignedOut,
+  UserButton,
+  useAuth,
+  useUser,
+} from '@clerk/nextjs'
 
 import Main from '@/components/design/main'
 import Page from '@/components/page'
@@ -26,7 +33,9 @@ import { api } from '@/lib/api'
 type Mode = 'text' | 'list'
 
 export default function Home() {
-  const { data: session } = useSession()
+  const { isSignedIn } = useAuth()
+  const { user } = useUser()
+
   const [text, setText] = useLocalStorage('home-note-text', '')
   const [mode, setMode] = useLocalStorage<Mode>('home-note-mode', 'text')
   const [isFullScreen, setIsFullScreen] = useLocalStorage<boolean>(
@@ -46,13 +55,13 @@ export default function Home() {
         text,
         title,
         body: body.join('\n\n'),
-        author: session?.user.name ?? '',
+        author: user?.username ?? '',
         pinned: false,
       }
       saveNote(note)
       setText('')
     }
-  }, [saveNote, session, setText, text])
+  }, [saveNote, user, setText, text])
 
   useEffect(() => {
     function onKeydown(e: KeyboardEvent) {
@@ -142,17 +151,24 @@ export default function Home() {
           >
             <DocumentDuplicateIcon className='h-6 w-6' />
           </FooterListItem>
-          {session ? (
+          {isSignedIn ? (
             <FooterListItem onClick={save} disabled={text === ''}>
               <ArrowDownOnSquareIcon className='h-6 w-6' />
             </FooterListItem>
           ) : (
-            <FooterListItem
-              onClick={() => {
-                signIn('discord').catch(err => console.log(err))
-              }}
-            >
-              <ArrowRightOnRectangleIcon className='h-6 w-6' />
+            <FooterListItem>
+              <SignedOut>
+                <SignInButton>
+                  <span className='flex w-full justify-center py-2 hover:cursor-pointer'>
+                    <ArrowRightOnRectangleIcon className='h-6 w-6' />
+                  </span>
+                </SignInButton>
+              </SignedOut>
+              <SignedIn>
+                <span className='flex w-full justify-center py-2'>
+                  <UserButton />
+                </span>
+              </SignedIn>
             </FooterListItem>
           )}
         </Footer>

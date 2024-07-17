@@ -2,7 +2,6 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/router'
 import Link from 'next/link'
 import type { Note } from '@prisma/client'
-import { useSession } from 'next-auth/react'
 import {
   ArrowDownOnSquareIcon,
   ArrowSmallRightIcon,
@@ -20,6 +19,7 @@ import {
 } from '@heroicons/react/24/solid'
 import { toast } from 'react-toastify'
 import classNames from 'classnames'
+import { useUser } from '@clerk/nextjs'
 
 import Main from '@/components/design/main'
 import Page from '@/components/page'
@@ -36,6 +36,7 @@ type Mode = 'text' | 'list'
 type FooterType = 'default' | 'tools' | 'share'
 
 export default function NotePage() {
+  const { user } = useUser()
   const currentUrl =
     typeof window !== 'undefined' ? window?.location.href : null
   const [currentSelectionStart, setCurrentSelectionStart] = useState<
@@ -48,7 +49,6 @@ export default function NotePage() {
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false)
   const [isDiscardChangesModalOpen, setIsDiscardChangesModalOpen] =
     useState(false)
-  const { data: session } = useSession()
   const {
     query: { id, q },
     push,
@@ -97,7 +97,7 @@ export default function NotePage() {
   })
   const { mutate: deleteNote } = api.notes.delete.useMutation()
 
-  const readOnly = !session || session?.user?.name !== note?.author
+  const readOnly = !user || user.username !== note?.author
   const hasChanges = text !== note?.text
 
   const saveNote = useCallback(() => {
@@ -109,11 +109,11 @@ export default function NotePage() {
         text,
         title,
         body: body.join('\n\n'),
-        author: session?.user.name ?? '',
+        author: user?.username ?? '',
       }
       updateNote(newNote)
     }
-  }, [note, id, session, text, updateNote])
+  }, [note, id, user, text, updateNote])
 
   useEffect(() => {
     function onKeydown(e: KeyboardEvent) {
@@ -136,7 +136,7 @@ export default function NotePage() {
     return () => {
       window.removeEventListener('keydown', onKeydown)
     }
-  }, [saveNote, hasChanges, setIsDiscardChangesModalOpen, push])
+  }, [saveNote, hasChanges, setIsDiscardChangesModalOpen, push, q])
   return (
     <Page>
       <div className='absolute top-2 right-2'>

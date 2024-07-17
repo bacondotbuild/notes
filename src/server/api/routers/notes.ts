@@ -55,7 +55,7 @@ export const notesRouter = createTRPCRouter({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      const currentUser = ctx.session.user.name
+      const currentUser = ctx.user.username
 
       const noteToBeUpdated = await ctx.prisma.note.findFirst({
         where: {
@@ -116,7 +116,7 @@ export const notesRouter = createTRPCRouter({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      const currentUser = ctx.session.user.name
+      const currentUser = ctx.user.username
 
       const noteToBeDeleted = await ctx.prisma.note.findFirst({
         where: {
