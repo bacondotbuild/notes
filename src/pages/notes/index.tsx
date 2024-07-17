@@ -304,6 +304,9 @@ export default function NotesPage() {
                   onFocus={() => {
                     setCurrentlyFocusedNoteId(note.id)
                   }}
+                  onBlur={() => {
+                    setCurrentlyFocusedNoteId(null)
+                  }}
                 >
                   <div>
                     <div>
