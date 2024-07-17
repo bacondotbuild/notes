@@ -50,7 +50,7 @@ export default function NotePage() {
     useState(false)
   const { data: session } = useSession()
   const {
-    query: { id },
+    query: { id, q },
     push,
   } = useRouter()
 
@@ -125,7 +125,10 @@ export default function NotePage() {
         if (hasChanges) {
           setIsDiscardChangesModalOpen(true)
         } else {
-          push('/notes').catch(err => console.log(err))
+          push({
+            pathname: '/notes',
+            query: q ? { q } : undefined,
+          }).catch(err => console.log(err))
         }
       }
     }

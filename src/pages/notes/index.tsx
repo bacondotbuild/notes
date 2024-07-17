@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
 import { signIn, signOut, useSession } from 'next-auth/react'
@@ -190,6 +190,11 @@ export default function NotesPage() {
       setSearch(String(query.q))
     }
   }, [query, setSearch])
+  const [focusTabs, setFocusTabs] = useState(false)
+  const firstTagButtonRef = useRef<HTMLButtonElement | null>(null)
+  const [currentlyFocusedNoteId, setCurrentlyFocusedNoteId] = useState<
+    string | null
+  >(null)
   useEffect(() => {
     function onKeydown(e: KeyboardEvent) {
       if (e.key === 'Escape') {
@@ -197,6 +202,19 @@ export default function NotesPage() {
       }
       if (e.key === 'f' && e.ctrlKey) {
         searchRef?.current?.focus()
+      }
+      if (e.key === 't' && e.ctrlKey) {
+        console.log({ focusTabs })
+        if (!focusTabs) {
+          setFocusTabs(true)
+          firstTagButtonRef?.current?.focus()
+        } else {
+          setFocusTabs(false)
+        }
+      }
+      if (currentlyFocusedNoteId !== null && e.key === 't') {
+        setSelectedNoteId(currentlyFocusedNoteId)
+        setIsSetTagsModalOpen(true)
       }
     }
     window.addEventListener('keydown', onKeydown)
@@ -243,9 +261,10 @@ export default function NotesPage() {
         </div>
         {allTags.length > 0 && (
           <ul className='flex space-x-2 overflow-x-auto'>
-            {allTags.map(tag => (
+            {allTags.map((tag, index) => (
               <li key={tag}>
                 <button
+                  ref={index === 0 ? firstTagButtonRef : undefined}
                   className={classNames(
                     'rounded-lg border bg-cb-blue p-2',
                     selectedTags?.includes(tag)
@@ -262,6 +281,7 @@ export default function NotesPage() {
                     }
                     setSelectedTags(newSelectedTags)
                   }}
+                  tabIndex={focusTabs ? 0 : -1}
                 >
                   {tag}
                 </button>
@@ -274,54 +294,71 @@ export default function NotesPage() {
         ) : notes?.length && notes?.length > 0 ? (
           <ul className='divide-y divide-cb-dusty-blue'>
             {notes.map(note => (
-              <li
-                key={note.id}
-                className='flex items-center justify-between py-2'
-              >
-                <Link className='text-cb-pink' href={`notes/${note.id}`}>
+              <li key={note.id}>
+                <Link
+                  className='flex items-center justify-between py-2 text-cb-pink hover:bg-cb-blue focus:bg-cb-blue focus:outline-none'
+                  href={{
+                    pathname: `notes/${note.id}`,
+                    query: search ? { q: search } : undefined,
+                  }}
+                  onFocus={() => {
+                    setCurrentlyFocusedNoteId(note.id)
+                  }}
+                >
                   <div>
-                    {note?.title}
-                    {notesFilter === 'all' ? ` - ${note.author}` : ''}
+                    <div>
+                      {note?.title}
+                      {notesFilter === 'all' ? ` - ${note.author}` : ''}
+                    </div>
+                    {note.tags && note.tags.length > 0 && (
+                      <div>{note.tags.join(' ')}</div>
+                    )}
                   </div>
-                  <div>{note.tags.join(' ')}</div>
+
+                  {session && notesFilter === 'my' && (
+                    <div className='flex space-x-2'>
+                      <button
+                        type='button'
+                        onClick={e => {
+                          e.preventDefault()
+                          setSelectedNoteId(note.id)
+                          setIsSetTagsModalOpen(true)
+                        }}
+                        tabIndex={-1}
+                      >
+                        <TagIcon className='h-6 w-6 text-cb-yellow' />
+                      </button>
+                      <button
+                        type='button'
+                        onClick={e => {
+                          e.preventDefault()
+                          const { pinned } = note
+                          const newNote = { ...note, pinned: !pinned }
+                          updateNote(newNote)
+                        }}
+                        className='group'
+                        tabIndex={-1}
+                      >
+                        <BookmarkIcon
+                          className={classNames(
+                            'h-6 w-6',
+                            note.pinned
+                              ? 'text-cb-yellow group-hover:hidden'
+                              : 'text-cb-dusty-blue hover:text-cb-yellow'
+                          )}
+                        />
+                        <BookmarkSlashIcon
+                          className={classNames(
+                            'hidden h-6 w-6',
+                            note.pinned
+                              ? 'text-cb-yellow group-hover:block'
+                              : ''
+                          )}
+                        />
+                      </button>
+                    </div>
+                  )}
                 </Link>
-                {session && notesFilter === 'my' && (
-                  <div className='flex space-x-2'>
-                    <button
-                      type='button'
-                      onClick={() => {
-                        setSelectedNoteId(note.id)
-                        setIsSetTagsModalOpen(true)
-                      }}
-                    >
-                      <TagIcon className='h-6 w-6 text-cb-yellow' />
-                    </button>
-                    <button
-                      type='button'
-                      onClick={() => {
-                        const { pinned } = note
-                        const newNote = { ...note, pinned: !pinned }
-                        updateNote(newNote)
-                      }}
-                      className='group'
-                    >
-                      <BookmarkIcon
-                        className={classNames(
-                          'h-6 w-6',
-                          note.pinned
-                            ? 'text-cb-yellow group-hover:hidden'
-                            : 'text-cb-dusty-blue hover:text-cb-yellow'
-                        )}
-                      />
-                      <BookmarkSlashIcon
-                        className={classNames(
-                          'hidden h-6 w-6',
-                          note.pinned ? 'text-cb-yellow group-hover:block' : ''
-                        )}
-                      />
-                    </button>
-                  </div>
-                )}
               </li>
             ))}
           </ul>
