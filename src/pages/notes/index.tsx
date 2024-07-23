@@ -11,11 +11,6 @@ import {
   useAuth,
   useUser,
 } from '@clerk/nextjs'
-
-import Main from '@/components/design/main'
-import Page from '@/components/page'
-import LoadingIcon from '@/components/loading-icon'
-import { api } from '@/lib/api'
 import {
   ArrowDownOnSquareIcon,
   ArrowRightOnRectangleIcon,
@@ -24,7 +19,13 @@ import {
   PlusIcon,
   TagIcon,
   XMarkIcon,
+  MagnifyingGlassIcon,
 } from '@heroicons/react/24/solid'
+
+import Main from '@/components/design/main'
+import Page from '@/components/page'
+import LoadingIcon from '@/components/loading-icon'
+import { api } from '@/lib/api'
 import Footer, { FooterListItem } from '@/components/design/footer'
 import Modal from '@/components/modal'
 import Button from '@/components/design/button'
@@ -373,6 +374,13 @@ export default function NotesPage() {
           <Link className='flex w-full justify-center py-2' href='/'>
             <XMarkIcon className='h-6 w-6' />
           </Link>
+        </FooterListItem>
+        <FooterListItem
+          onClick={() => {
+            searchRef?.current?.focus()
+          }}
+        >
+          <MagnifyingGlassIcon className='h-6 w-6' />
         </FooterListItem>
         <FooterListItem>
           <SignedOut>
