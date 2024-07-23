@@ -30,3 +30,5 @@ Follow our deployment guides for [Vercel](https://create.t3.gg/en/deployment/ver
 ## TODO
 
 - [x] refactor: use clerk for auth
+- [x] feat: replace get all notes query with get all notes by user
+- [ ] refactor: use app router

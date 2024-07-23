@@ -26,9 +26,18 @@ export const notesRouter = createTRPCRouter({
         console.log(error)
       }
     }),
-  getAll: publicProcedure.query(async ({ ctx }) => {
+  getAllByUser: protectedProcedure.query(async ({ ctx }) => {
     try {
+      const currentUser = ctx.user.username
+
+      if (!currentUser) {
+        return []
+      }
+
       return await ctx.prisma.note.findMany({
+        where: {
+          author: currentUser,
+        },
         orderBy: [
           {
             pinned: 'desc',

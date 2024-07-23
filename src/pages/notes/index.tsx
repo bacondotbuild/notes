@@ -23,8 +23,6 @@ import {
   BookmarkSlashIcon,
   PlusIcon,
   TagIcon,
-  UserGroupIcon,
-  UserIcon,
   XMarkIcon,
 } from '@heroicons/react/24/solid'
 import Footer, { FooterListItem } from '@/components/design/footer'
@@ -32,8 +30,6 @@ import Modal from '@/components/modal'
 import Button from '@/components/design/button'
 import useLocalStorage from '@/lib/useLocalStorage'
 import useSearch from '@/lib/useSearch'
-
-type NotesFilter = 'my' | 'all'
 
 const AddNewTag = ({ note }: { note: Note }) => {
   const { tags } = note
@@ -63,7 +59,7 @@ const AddNewTag = ({ note }: { note: Note }) => {
     },
     async onSettled() {
       // Sync with server once mutation has settled
-      await utils.notes.getAll.invalidate()
+      await utils.notes.getAllByUser.invalidate()
     },
   })
   return (
@@ -115,11 +111,7 @@ export default function NotesPage() {
 
   const router = useRouter()
   const { query, push } = router
-  const { data: queriedNotes, isLoading } = api.notes.getAll.useQuery()
-  const [notesFilter, setNotesFilter] = useLocalStorage<NotesFilter>(
-    'notes-notesFilter',
-    'my'
-  )
+  const { data: queriedNotes, isLoading } = api.notes.getAllByUser.useQuery()
   const [isSetTagsModalOpen, setIsSetTagsModalOpen] = useState(false)
   const [isAddNewTagModalOpen, setIsAddNewTagModalOpen] = useState(false)
   const [selectedNoteId, setSelectedNoteId] = useState<string | null>(null)
@@ -156,21 +148,14 @@ export default function NotesPage() {
     },
     async onSettled() {
       // Sync with server once mutation has settled
-      await utils.notes.getAll.invalidate()
+      await utils.notes.getAllByUser.invalidate()
     },
   })
 
-  const userNotes = isSignedIn
-    ? queriedNotes
-        ?.filter(note => note.author === user?.username)
-        .sort(note => (note.pinned ? 1 : 0))
-    : []
-
-  const queriedOrUserNotes = notesFilter === 'all' ? queriedNotes : userNotes
-  const allTags = queriedOrUserNotes
+  const allTags = queriedNotes
     ? [
         ...new Set(
-          queriedOrUserNotes.reduce((allTagsFoo: string[], note: Note) => {
+          queriedNotes.reduce((allTagsFoo: string[], note: Note) => {
             const { tags } = note
             const noteTags = [...tags]
             return [...allTagsFoo, ...noteTags]
@@ -179,7 +164,7 @@ export default function NotesPage() {
       ]
     : []
 
-  const taggedNotes = queriedOrUserNotes?.filter(note =>
+  const taggedNotes = queriedNotes?.filter(note =>
     selectedTags?.length > 0
       ? selectedTags.every(tag => note.tags.includes(tag))
       : true
@@ -255,7 +240,7 @@ export default function NotesPage() {
           <input
             ref={searchRef}
             type='text'
-            className='w-full bg-cb-blue'
+            className='w-full bg-cb-blue disabled:pointer-events-none disabled:opacity-25'
             placeholder='search'
             value={search}
             onChange={e => {
@@ -271,6 +256,7 @@ export default function NotesPage() {
               }
               router.push(url).catch(err => console.log(err))
             }}
+            disabled={!(notes?.length && notes?.length > 0)}
           />
         </div>
         {allTags.length > 0 && (
@@ -303,7 +289,9 @@ export default function NotesPage() {
             ))}
           </ul>
         )}
-        {isLoading ? (
+        {!isSignedIn ? (
+          <p>login to see your notes!</p>
+        ) : isLoading ? (
           <LoadingIcon className='h-16 w-16 animate-spin-slow text-blue-700 dark:text-blue-200' />
         ) : notes?.length && notes?.length > 0 ? (
           <ul className='divide-y divide-cb-dusty-blue'>
@@ -323,16 +311,13 @@ export default function NotesPage() {
                   }}
                 >
                   <div>
-                    <div>
-                      {note?.title}
-                      {notesFilter === 'all' ? ` - ${note.author}` : ''}
-                    </div>
+                    <div>{note?.title}</div>
                     {note.tags && note.tags.length > 0 && (
                       <div>{note.tags.join(' ')}</div>
                     )}
                   </div>
 
-                  {isSignedIn && notesFilter === 'my' && (
+                  {isSignedIn && (
                     <div className='flex space-x-2'>
                       <button
                         type='button'
@@ -379,16 +364,8 @@ export default function NotesPage() {
               </li>
             ))}
           </ul>
-        ) : isSignedIn ? (
-          <p className='py-2'>
-            {notesFilter === 'all'
-              ? 'no notes'
-              : "you have no notes (or maybe they ' all filtered?)"}
-          </p>
         ) : (
-          <p className='py-2'>
-            {notesFilter === 'all' ? 'no notes' : 'login to see your notes!'}
-          </p>
+          <p className='py-2'>you have no notes</p>
         )}
       </Main>
       <Footer>
@@ -397,24 +374,6 @@ export default function NotesPage() {
             <XMarkIcon className='h-6 w-6' />
           </Link>
         </FooterListItem>
-        {notesFilter === 'all' ? (
-          <FooterListItem
-            onClick={() => {
-              setNotesFilter('my')
-            }}
-          >
-            <UserGroupIcon className='h-6 w-6' />
-          </FooterListItem>
-        ) : (
-          <FooterListItem
-            onClick={() => {
-              setNotesFilter('all')
-            }}
-          >
-            <UserIcon className='h-6 w-6' />
-          </FooterListItem>
-        )}
-
         <FooterListItem>
           <SignedOut>
             <SignInButton>
