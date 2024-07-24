@@ -85,7 +85,7 @@ export default function Home() {
   }
   return (
     <Page>
-      <div className='absolute top-2 right-2'>
+      <div className='absolute right-2 top-2'>
         <button
           className='text-cb-yellow'
           type='button'
@@ -135,11 +135,17 @@ export default function Home() {
             </Link>
           </FooterListItem>
           {mode === 'text' ? (
-            <FooterListItem onClick={() => setMode('list')}>
+            <FooterListItem
+              onClick={() => setMode('list')}
+              disabled={text === ''}
+            >
               <ListBulletIcon className='h-6 w-6' />
             </FooterListItem>
           ) : (
-            <FooterListItem onClick={() => setMode('text')}>
+            <FooterListItem
+              onClick={() => setMode('text')}
+              disabled={text === ''}
+            >
               <PencilSquareIcon className='h-6 w-6' />
             </FooterListItem>
           )}
@@ -148,6 +154,7 @@ export default function Home() {
               copyToClipboard(text)
               toast.success('copied to clipboard')
             }}
+            disabled={text === ''}
           >
             <DocumentDuplicateIcon className='h-6 w-6' />
           </FooterListItem>
