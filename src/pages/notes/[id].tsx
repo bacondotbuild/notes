@@ -139,7 +139,7 @@ export default function NotePage() {
   }, [saveNote, hasChanges, setIsDiscardChangesModalOpen, push, q])
   return (
     <Page>
-      <div className='absolute top-2 right-2'>
+      <div className='absolute right-2 top-2'>
         <button
           className='text-cb-yellow'
           type='button'
@@ -197,7 +197,69 @@ export default function NotePage() {
             }}
             onKeyDown={e => {
               const { key, altKey } = e
-              if (key === 'Tab') {
+
+              if (key === ' ') {
+                const textSplit = text.split('')
+                const { selectionStart } = e.target as HTMLInputElement
+                let spaceIndex = -1
+                for (let i = selectionStart ?? 0; i > -1; i--) {
+                  if (
+                    i === selectionStart &&
+                    (textSplit[i] === ' ' || textSplit[i] === '\n')
+                  )
+                    continue
+                  if (textSplit[i] === ' ' || textSplit[i] === '\n') {
+                    spaceIndex = i
+                    break
+                  }
+                }
+                let lastWord = ''
+                for (let i = spaceIndex + 1; i < (selectionStart ?? 0); i++)
+                  lastWord += textSplit[i]
+
+                type Command = {
+                  action?: () => void
+                  replaceStr?: string
+                  skipReplace?: boolean
+                }
+                const createCommand =
+                  ({ action, replaceStr = '', skipReplace }: Command) =>
+                  () => {
+                    if (!skipReplace) {
+                      const newText = text.replace(lastWord, replaceStr)
+                      setText(newText)
+                    }
+                    if (action) {
+                      action()
+                    }
+                  }
+
+                const commands: Record<string, () => void> = {
+                  clear: createCommand({
+                    action: () => {
+                      setText('')
+                    },
+                  }),
+                  c: createCommand({
+                    action: () => {
+                      setText('')
+                    },
+                  }),
+                  fs: createCommand({
+                    action: () => {
+                      setIsFullScreen(!isFullScreen)
+                    },
+                  }),
+                }
+                const commandKey = '/' // TODO: add support for other commandKeys
+                const command = commands[lastWord.replace(commandKey, '')]
+
+                const isCommand = lastWord.startsWith(commandKey) && command
+                if (isCommand) {
+                  e.preventDefault()
+                  command()
+                }
+              } else if (key === 'Tab') {
                 e.preventDefault()
                 const { selectionStart, selectionEnd } =
                   e.target as HTMLInputElement
@@ -384,7 +446,10 @@ export default function NotePage() {
                 <ShareIcon className='h-6 w-6' />
               </FooterListItem>
               {!readOnly && (
-                <FooterListItem onClick={saveNote} disabled={!hasChanges}>
+                <FooterListItem
+                  onClick={saveNote}
+                  disabled={!hasChanges || text === ''}
+                >
                   <ArrowDownOnSquareIcon className='h-6 w-6' />
                 </FooterListItem>
               )}

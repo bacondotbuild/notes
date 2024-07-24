@@ -32,3 +32,7 @@ Follow our deployment guides for [Vercel](https://create.t3.gg/en/deployment/ver
 - [x] refactor: use clerk for auth
 - [x] feat: replace get all notes query with get all notes by user
 - [ ] refactor: use app router
+- [ ] on desktop, change list button to show sidebar instead of navigating to notes page
+- [x] add text commands such as `/c` to clear text
+- [ ] commands: add command to set commandKey `setcmd`
+- [ ] commands: add command to go to notes page `/n`
