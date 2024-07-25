@@ -198,11 +198,14 @@ export default function NotePage() {
             onKeyDown={e => {
               const { key, altKey } = e
 
+              const target = e.target as HTMLTextAreaElement
+              const selectionStart = Number(target.selectionStart)
+              const selectionEnd = Number(target.selectionEnd)
+
               if (key === ' ') {
                 const textSplit = text.split('')
-                const { selectionStart } = e.target as HTMLInputElement
                 let spaceIndex = -1
-                for (let i = selectionStart ?? 0; i > -1; i--) {
+                for (let i = selectionStart; i > -1; i--) {
                   if (
                     i === selectionStart &&
                     (textSplit[i] === ' ' || textSplit[i] === '\n')
@@ -214,8 +217,26 @@ export default function NotePage() {
                   }
                 }
                 let lastWord = ''
-                for (let i = spaceIndex + 1; i < (selectionStart ?? 0); i++)
+                for (let i = spaceIndex + 1; i < selectionStart; i++) {
                   lastWord += textSplit[i]
+                }
+
+                const replaceText = (string: string, replaceStr: string) => {
+                  const newText = text.replace(string, replaceStr)
+                  const newSelectionStart =
+                    selectionStart + (replaceStr.length - string.length)
+
+                  if (textAreaRef.current) {
+                    textAreaRef.current.value = newText
+
+                    textAreaRef.current.setSelectionRange(
+                      newSelectionStart,
+                      newSelectionStart
+                    )
+                  }
+
+                  setText(newText)
+                }
 
                 type Command = {
                   action?: () => void
@@ -226,8 +247,7 @@ export default function NotePage() {
                   ({ action, replaceStr = '', skipReplace }: Command) =>
                   () => {
                     if (!skipReplace) {
-                      const newText = text.replace(lastWord, replaceStr)
-                      setText(newText)
+                      replaceText(lastWord, replaceStr)
                     }
                     if (action) {
                       action()
@@ -250,6 +270,12 @@ export default function NotePage() {
                       setIsFullScreen(!isFullScreen)
                     },
                   }),
+                  date: createCommand({
+                    replaceStr: new Date().toLocaleDateString(),
+                  }),
+                  // time: createCommand({
+                  //   replaceStr: new Date().toLocaleDateString(),
+                  // }),
                 }
                 const commandKey = '/' // TODO: add support for other commandKeys
                 const command = commands[lastWord.replace(commandKey, '')]
@@ -261,15 +287,13 @@ export default function NotePage() {
                 }
               } else if (key === 'Tab') {
                 e.preventDefault()
-                const { selectionStart, selectionEnd } =
-                  e.target as HTMLInputElement
 
                 const newText =
-                  text.substring(0, selectionStart ?? undefined) +
+                  text.substring(0, selectionStart) +
                   '\t' +
-                  text.substring(selectionEnd ?? 0, text.length)
+                  text.substring(selectionEnd, text.length)
 
-                if (textAreaRef.current && typeof selectionStart === 'number') {
+                if (textAreaRef.current) {
                   textAreaRef.current.focus()
                   textAreaRef.current.value = newText
 
@@ -282,7 +306,6 @@ export default function NotePage() {
                 setText(newText)
               } else if (altKey && (key === 'ArrowUp' || key === 'ArrowDown')) {
                 e.preventDefault()
-                const { selectionStart } = e.target as HTMLInputElement
                 const contentArray = text.split('\n')
                 let index = 0
                 let currentLength = 0
@@ -290,15 +313,14 @@ export default function NotePage() {
                   const currentItem = contentArray[i]
                   if (
                     currentItem &&
-                    currentLength + currentItem.length + 1 >
-                      Number(selectionStart)
+                    currentLength + currentItem.length + 1 > selectionStart
                   ) {
                     index = i
                     break
                   }
                   currentLength += (currentItem?.length ?? 0) + 1 // for \n
                 }
-                const offset = Number(selectionStart) - currentLength
+                const offset = selectionStart - currentLength
                 const swapLines = (direction: 'ArrowUp' | 'ArrowDown') => {
                   if (textAreaRef.current) {
                     const swapIndex = index + (direction === 'ArrowUp' ? -1 : 1)

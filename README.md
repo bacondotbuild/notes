@@ -36,3 +36,14 @@ Follow our deployment guides for [Vercel](https://create.t3.gg/en/deployment/ver
 - [x] add text commands such as `/c` to clear text
 - [ ] commands: add command to set commandKey `setcmd`
 - [ ] commands: add command to go to notes page `/n`
+- [ ] commands: add other commands from notepad
+  - [x] date
+  - [ ] time
+  - [ ] ?
+  - [ ] nba
+  - [ ] q
+  - [ ] n
+  - [ ] rev
+- [ ] add docs
+- [ ] docs: lists, markdown, todos, yml
+- [ ] docs: commands
