@@ -66,6 +66,10 @@ export default function NotePage() {
     'home-note-fullscreen',
     false
   )
+  const [commandKey, setCommandKey] = useLocalStorage(
+    'home-note-commandKey',
+    '!'
+  )
   const [footerType, setFooterType] = useState<FooterType>('default')
 
   const textAsList = (text ?? '').split('\n')
@@ -254,6 +258,10 @@ export default function NotePage() {
                     }
                   }
 
+                const [commandName, ...commandArguments] = lastWord
+                  .replace(commandKey, '')
+                  .split('-')
+
                 const commands: Record<string, () => void> = {
                   clear: createCommand({
                     action: () => {
@@ -276,9 +284,22 @@ export default function NotePage() {
                   // time: createCommand({
                   //   replaceStr: new Date().toLocaleDateString(),
                   // }),
+                  '?': createCommand({
+                    replaceStr: `cmd = ${commandKey}[command]`,
+                  }),
+                  setcmd: createCommand({
+                    action: () => {
+                      const newCommandKey = commandArguments[0]
+                      if (newCommandKey) {
+                        setCommandKey(newCommandKey)
+                      } else {
+                        console.error('no command key provided')
+                      }
+                    },
+                  }),
                 }
-                const commandKey = '/' // TODO: add support for other commandKeys
-                const command = commands[lastWord.replace(commandKey, '')]
+
+                const command = commands[commandName ?? '']
 
                 const isCommand = lastWord.startsWith(commandKey) && command
                 if (isCommand) {
