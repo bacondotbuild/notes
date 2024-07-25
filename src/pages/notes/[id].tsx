@@ -103,9 +103,10 @@ export default function NotePage() {
 
   const readOnly = !user || user.username !== note?.author
   const hasChanges = text !== note?.text
+  const canSave = !readOnly && !(!hasChanges || text === '')
 
   const saveNote = useCallback(() => {
-    if (note) {
+    if (note && canSave) {
       const [title, ...body] = text.split('\n\n')
       const newNote = {
         ...note,
@@ -117,7 +118,14 @@ export default function NotePage() {
       }
       updateNote(newNote)
     }
-  }, [note, id, user, text, updateNote])
+  }, [note, id, user, text, updateNote, canSave])
+
+  const navigateToNotesPage = () => {
+    push({
+      pathname: '/notes',
+      query: q ? { q } : undefined,
+    }).catch(err => console.log(err))
+  }
 
   useEffect(() => {
     function onKeydown(e: KeyboardEvent) {
@@ -129,10 +137,7 @@ export default function NotePage() {
         if (hasChanges) {
           setIsDiscardChangesModalOpen(true)
         } else {
-          push({
-            pathname: '/notes',
-            query: q ? { q } : undefined,
-          }).catch(err => console.log(err))
+          navigateToNotesPage()
         }
       }
     }
@@ -295,6 +300,11 @@ export default function NotePage() {
                       } else {
                         console.error('no command key provided')
                       }
+                    },
+                  }),
+                  n: createCommand({
+                    action: () => {
+                      navigateToNotesPage()
                     },
                   }),
                 }
@@ -489,10 +499,7 @@ export default function NotePage() {
                 <ShareIcon className='h-6 w-6' />
               </FooterListItem>
               {!readOnly && (
-                <FooterListItem
-                  onClick={saveNote}
-                  disabled={!hasChanges || text === ''}
-                >
+                <FooterListItem onClick={saveNote} disabled={!canSave}>
                   <ArrowDownOnSquareIcon className='h-6 w-6' />
                 </FooterListItem>
               )}
