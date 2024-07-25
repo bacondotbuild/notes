@@ -307,6 +307,16 @@ export default function NotePage() {
                       navigateToNotesPage()
                     },
                   }),
+                  rev: createCommand({
+                    action: () => {
+                      const [, ...body] = text.split('\n')
+                      const newBody = [...body].reverse()
+                      replaceText(
+                        body.join('\n'),
+                        newBody.join('\n').replace(lastWord, '')
+                      )
+                    },
+                  }),
                 }
 
                 const command = commands[commandName ?? '']

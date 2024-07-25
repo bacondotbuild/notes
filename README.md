@@ -35,13 +35,13 @@ Follow our deployment guides for [Vercel](https://create.t3.gg/en/deployment/ver
 - [ ] on desktop, change list button to show sidebar instead of navigating to notes page
 - [x] add text commands such as `/c` to clear text
 - [x] commands: add command to set commandKey `setcmd`
-- [ ] commands: add command to go to notes page `/n`
+- [x] commands: add command to go to notes page `/n`
 - [ ] commands: add other commands from notepad
   - [x] date
   - [ ] time
   - [x] ?
   - [x] n
-  - [ ] rev
+  - [x] rev
   - [ ] nba
   - [ ] q
 - [ ] add docs
