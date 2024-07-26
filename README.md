@@ -42,6 +42,7 @@ Follow our deployment guides for [Vercel](https://create.t3.gg/en/deployment/ver
   - [x] ?
   - [x] n
   - [x] rev
+  - [x] t/tab
   - [ ] nba
   - [ ] q
 - [ ] add docs

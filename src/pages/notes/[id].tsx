@@ -322,6 +322,12 @@ export default function NotePage() {
                       )
                     },
                   }),
+                  t: createCommand({
+                    replaceStr: '\t',
+                  }),
+                  tab: createCommand({
+                    replaceStr: '\t',
+                  }),
                 }
 
                 const command = commands[commandName ?? '']
