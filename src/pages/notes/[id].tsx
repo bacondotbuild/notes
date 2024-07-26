@@ -46,6 +46,11 @@ export default function NotePage() {
     null
   )
   const textAreaRef = useRef<HTMLTextAreaElement>(null)
+  useEffect(() => {
+    if (textAreaRef.current) {
+      textAreaRef.current.focus()
+    }
+  }, [])
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false)
   const [isDiscardChangesModalOpen, setIsDiscardChangesModalOpen] =
     useState(false)
