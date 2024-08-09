@@ -152,7 +152,7 @@ export default function NotePage() {
     }
   }, [saveNote, hasChanges, setIsDiscardChangesModalOpen, push, q])
   return (
-    <Page>
+    <Page title={note?.title}>
       <div className='absolute right-2 top-2'>
         <button
           className='text-cb-yellow'
