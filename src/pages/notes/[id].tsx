@@ -4,6 +4,7 @@ import Link from 'next/link'
 import type { Note } from '@prisma/client'
 import {
   ArrowDownOnSquareIcon,
+  ArrowRightOnRectangleIcon,
   ArrowSmallRightIcon,
   ArrowsPointingInIcon,
   ArrowsPointingOutIcon,
@@ -19,7 +20,7 @@ import {
 } from '@heroicons/react/24/solid'
 import { toast } from 'react-toastify'
 import classNames from 'classnames'
-import { useUser } from '@clerk/nextjs'
+import { SignInButton, useUser } from '@clerk/nextjs'
 
 import Main from '@/components/design/main'
 import Page from '@/components/page'
@@ -151,6 +152,23 @@ export default function NotePage() {
       window.removeEventListener('keydown', onKeydown)
     }
   }, [saveNote, hasChanges, setIsDiscardChangesModalOpen, push, q])
+  if (!user) {
+    return (
+      <Page>
+        <Main className='flex flex-col space-y-4 p-4'>
+          <div className='flex items-center'>
+            <h1>notes</h1>
+            <div className='flex flex-grow justify-end'>
+              <SignInButton>
+                <ArrowRightOnRectangleIcon className='h-6 w-6 hover:cursor-pointer' />
+              </SignInButton>
+            </div>
+          </div>
+          <p>you must be logged in to view this note</p>
+        </Main>
+      </Page>
+    )
+  }
   return (
     <Page title={note?.title}>
       <div className='absolute right-2 top-2'>
